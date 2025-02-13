@@ -1,0 +1,168 @@
+/* Base Styles */
+body {
+    background-color: #f8f9fa;
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    color: #2d3748;
+    margin: 0;
+    padding: 0;
+}
+
+/* Carousel Container */
+.carousel-container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 1rem;
+    padding: 2rem 0;
+    max-width: 1200px;
+    margin: auto;
+}
+
+/* Navigation Buttons */
+.carousel-nav {
+    background: white;
+    border: none;
+    border-radius: 50%;
+    width: 3rem;
+    height: 3rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    transition: transform 0.2s ease, background 0.2s ease;
+    z-index: 10;
+    cursor: pointer;
+}
+
+.carousel-nav:hover {
+    background: #f1f3f5;
+    transform: scale(1.1);
+}
+
+.carousel-nav:active {
+    transform: scale(0.95);
+}
+
+/* Carousel Wrapper */
+.carousel-wrapper {
+    position: relative;
+    width: 100%;
+    height: 450px;
+    perspective: 1000px;
+}
+
+/* Card Styles */
+.carousel-card {
+    position: absolute;
+    width: 100%;
+    max-width: 350px;
+    left: 50%;
+    opacity: 0;
+    transform: translateX(-50%) translateZ(-100px);
+    transition: transform 0.5s ease-in-out, opacity 0.5s ease-in-out;
+    background: white;
+    border-radius: 1rem;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    overflow: hidden;
+}
+
+.carousel-card.active {
+    opacity: 1;
+    transform: translateX(-50%) translateZ(0) scale(1.1);
+    z-index: 5;
+}
+
+.carousel-card.prev,
+.carousel-card.next {
+    opacity: 0.7;
+    transition: transform 0.3s ease-in-out, opacity 0.3s ease-in-out;
+}
+
+.carousel-card.prev {
+    transform: translateX(-120%) translateZ(-100px) scale(0.9);
+}
+
+.carousel-card.next {
+    transform: translateX(20%) translateZ(-100px) scale(0.9);
+}
+
+/* Card Components */
+.card-header {
+    position: absolute;
+    top: 0.5rem;
+    right: 0.5rem;
+    z-index: 10;
+}
+
+.btn-icon {
+    padding: 0.5rem;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.9);
+    border: none;
+    transition: transform 0.2s ease, background 0.2s ease;
+    cursor: pointer;
+}
+
+.btn-icon:hover {
+    background: white;
+    transform: scale(1.1);
+}
+
+.card-img {
+    width: 100%;
+    height: 200px;
+    object-fit: cover;
+    border-radius: 1rem 1rem 0 0;
+}
+
+.card-content {
+    padding: 1.5rem;
+}
+
+.card-title {
+    font-size: 1.25rem;
+    font-weight: 600;
+    margin-bottom: 0.75rem;
+    color: #1a202c;
+}
+
+.card-description {
+    font-size: 0.875rem;
+    color: #4a5568;
+    line-height: 1.5;
+}
+
+/* Dropdown Menu */
+.dropdown-menu {
+    position: absolute !important;
+    margin-top: 1rem;
+    border-radius: 0.5rem;
+    border: none;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    background: white;
+}
+
+.dropdown-item {
+    padding: 0.5rem 1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    transition: background 0.2s ease;
+    cursor: pointer;
+}
+
+.dropdown-item:hover {
+    background-color: #f1f3f5;
+}
+
+/* Responsive Adjustments */
+@media (max-width: 768px) {
+    .carousel-card {
+        max-width: 300px;
+    }
+
+    .carousel-nav {
+        width: 2.5rem;
+        height: 2.5rem;
+    }
+}

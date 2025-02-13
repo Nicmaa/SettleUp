@@ -1,0 +1,10 @@
+<footer class="footer bg-dark text-light py-3 mt-auto">
+    <div class="container text-center">
+        <span>&copy; SettleUp <span id="currentYear"></span></span>
+    </div>
+</footer>
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        document.getElementById('currentYear').textContent = new Date().getFullYear();
+    });
+</script>
