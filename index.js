@@ -34,13 +34,13 @@ app.get('/new', (req, res) => {
 })
 
 app.post('/new', async (req, res) => {
-    const { title, description, partecipants } = req.body;
+    const { title, image, description, partecipants } = req.body;
 
     const partecipantsArray = Array.isArray(partecipants)
         ? partecipants.map(name => ({ name }))
         : [{ name: partecipants }];
 
-    const newGroup = new Group({ title, description, partecipants: partecipantsArray });
+    const newGroup = new Group({ title, image, description, partecipants: partecipantsArray });
     await newGroup.save();
     res.redirect('/');
 })
@@ -53,99 +53,65 @@ app.get('/:title', async (req, res) => {
         return res.status(404).send("Group not found");
     }
 
-    const transactions = await Transaction.find({ _id: { $in: group.transactions } })
-        .sort({ createdAt: -1 });
+    const transactions = await Transaction.find({ _id: { $in: group.transactions } }).sort({ createdAt: -1 });
 
-    // Calculate total paid
-    const totalPaid = transactions.reduce((sum, transaction) => {
-        return sum + transaction.payments.reduce((innerSum, payment) => innerSum + payment.amount, 0);
-    }, 0);
+    // Aggrega i pagamenti per persona
+    let paymentMap = new Map();
 
-    // Calculate payments per participant
-    const payments = transactions.flatMap(transaction => transaction.payments);
-    const mostPaid = payments.reduce((acc, payment) => {
-        acc[payment.name] = (acc[payment.name] || 0) + payment.amount;
-        return acc;
-    }, {});
-
-    const highestPayingUser = Object.entries(mostPaid).reduce((max, [name, amount]) => {
-        return amount > max.amount ? { name, amount } : max;
-    }, { name: '', amount: 0 });
-
-    // Initialize participant debts
-    const participants = group.partecipants || [];
-    const participantDebts = {};
-    participants.forEach(p => {
-        participantDebts[p.name] = {};
-        participants.forEach(otherP => {
-            if (p.name !== otherP.name) {
-                participantDebts[p.name][otherP.name] = 0;
+    transactions.forEach(transaction => {
+        transaction.payments.forEach(payment => {
+            if (paymentMap.has(payment.name)) {
+                paymentMap.set(payment.name, paymentMap.get(payment.name) + payment.amount);
+            } else {
+                paymentMap.set(payment.name, payment.amount);
             }
         });
     });
 
-    // Calculate what each person has spent
-    const totalSpentPerParticipant = {};
-    participants.forEach(p => {
-        totalSpentPerParticipant[p.name] = payments
-            .filter(payment => payment.name === p.name)
-            .reduce((sum, payment) => sum + payment.amount, 0);
-    });
+    // Converte la mappa in un array
+    let payments = Array.from(paymentMap, ([name, amount]) => ({ name, amount }));
 
-    // Calculate the average amount each person should have paid
-    const averageShare = totalPaid / participants.length;
+    // Calcola il totale e la quota per persona
+    const total = payments.reduce((sum, p) => sum + p.amount, 0);
+    const perPerson = total / payments.length;
 
-    // Calculate balances (positive means they paid more, negative means they paid less)
-    const balances = {};
-    participants.forEach(p => {
-        balances[p.name] = totalSpentPerParticipant[p.name] - averageShare;
-    });
+    // Calcola il bilancio di ciascuno
+    let balances = payments.map(p => ({
+        name: p.name,
+        balance: p.amount - perPerson
+    }));
 
-    // Sort participants by balance to match debtors with creditors
-    const sortedParticipants = [...participants]
-        .sort((a, b) => balances[a.name] - balances[b.name]);
+    // Separa creditori (+) e debitori (-)
+    let creditors = balances.filter(p => p.balance > 0).sort((a, b) => b.balance - a.balance);
+    let debtors = balances.filter(p => p.balance < 0).sort((a, b) => a.balance - b.balance);
 
-    let left = 0;  // index for people who owe money (negative balance)
-    let right = sortedParticipants.length - 1;  // index for people who are owed money (positive balance)
+    // Lista delle transazioni per bilanciare
+    let transactionsToSettle = [];
+    let i = 0, j = 0;
 
-    while (left < right) {
-        const debtor = sortedParticipants[left].name;
-        const creditor = sortedParticipants[right].name;
+    while (i < debtors.length && j < creditors.length) {
+        let debtor = debtors[i];
+        let creditor = creditors[j];
 
-        const debtorBalance = Math.abs(balances[debtor]);
-        const creditorBalance = balances[creditor];
+        let amountToPay = Math.min(-debtor.balance, creditor.balance);
 
-        if (debtorBalance === 0 || creditorBalance === 0) {
-            if (debtorBalance === 0) left++;
-            if (creditorBalance === 0) right--;
-            continue;
-        }
+        transactionsToSettle.push({
+            from: debtor.name,
+            to: creditor.name,
+            amount: amountToPay.toFixed(2)
+        });
 
-        // Calculate the amount to settle between these two participants
-        const amount = Math.min(debtorBalance, creditorBalance);
+        // Aggiorna i bilanci
+        debtor.balance += amountToPay;
+        creditor.balance -= amountToPay;
 
-        // Record the debt
-        participantDebts[debtor][creditor] = Number(amount.toFixed(2));
-
-        // Update balances
-        balances[debtor] += amount;
-        balances[creditor] -= amount;
-
-        // Move indices if balances are settled
-        if (Math.abs(balances[debtor]) < 0.01) left++;
-        if (Math.abs(balances[creditor]) < 0.01) right--;
+        // Se qualcuno ha saldo 0, passa al successivo
+        if (debtor.balance === 0) i++;
+        if (creditor.balance === 0) j++;
     }
 
-    res.render('group.ejs', {
-        group,
-        participants,
-        transactions,
-        totalPaid,
-        highestPayingUser,
-        participantDebts
-    });
+    res.render('group.ejs', { group, total, transactionsToSettle, transactions });
 });
-
 
 app.get('/:title/edit', async (req, res) => {
     const { title } = req.params;
@@ -155,13 +121,13 @@ app.get('/:title/edit', async (req, res) => {
 
 app.put('/:title', async (req, res) => {
     const titolo = req.params.title;
-    const { title, description, partecipants } = req.body;
+    const { title, image, description, partecipants } = req.body;
 
     const partecipantsArray = Array.isArray(partecipants)
         ? partecipants.map(name => ({ name }))
         : [{ name: partecipants }];
 
-    const group = await Group.findOneAndUpdate({ title: titolo }, { title, description, partecipants: partecipantsArray }, { runValidators: true, new: true });
+    const group = await Group.findOneAndUpdate({ title: titolo }, { title, image, description, partecipants: partecipantsArray }, { runValidators: true, new: true });
     res.redirect(`/${group.title}`);
 })
 
@@ -173,6 +139,19 @@ app.delete('/:id', async (req, res) => {
     }
     await Group.findByIdAndDelete(id);
     res.redirect('/');
+});
+
+app.delete('/:id/:transId', async (req, res) => {
+    const { id, transId } = req.params;
+    const group = await Group.findById(id);
+    if (group.transactions.includes(transId)) {
+        await Transaction.findByIdAndDelete(transId);
+
+        await Group.findByIdAndUpdate(id, {
+            $pull: { transactions: transId }
+        });
+    }
+    res.redirect(`/${group.title}`);
 });
 
 app.get('/:title/newTransaction', async (req, res) => {
@@ -192,6 +171,24 @@ app.post('/:title/newTransaction', async (req, res) => {
     await newTrans.save();
     group.transactions.push(newTrans._id);
     await group.save();
+    res.redirect(`/${title}`);
+})
+
+app.get('/:title/:transId/editTransaction', async (req, res) => {
+    const { title, transId } = req.params;
+    const group = await Group.findOne({ title });
+    const transaction = await Transaction.findById(transId);
+    res.render('editTransaction.ejs', { group, transaction });
+})
+
+app.patch('/:title/:transId', async (req, res) => {
+    const { title, transId } = req.params;
+    const group = await Group.findOne({ title });
+    const payments = req.body.name.map((name, index) => ({
+        name,
+        amount: parseFloat(req.body.amount[index]) || 0
+    }));
+    await Transaction.findByIdAndUpdate(transId,{payments});
     res.redirect(`/${title}`);
 })
 

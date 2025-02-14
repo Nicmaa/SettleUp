@@ -15,6 +15,10 @@ const groupSchema = new Schema({
         unique: true,
         trim: true
     },
+    image: {
+        type: String,
+        required: true,
+    },
     description: {
         type: String,
         maxLength: 100,

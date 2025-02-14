@@ -4,7 +4,7 @@
     <!-- Group Header -->
     <div class="text-center mb-5">
         <h2 class="display-5 text-primary mb-3">
-            <%= group.title %>
+            <b><%= group.title %></b>
         </h2>
         <p class="lead text-muted">
             <%= group.description %>
@@ -32,7 +32,8 @@
                                     <h5 class="text-muted mb-0">Totale Pagato</h5>
                                     <i class="bi bi-cash-stack text-primary fs-4"></i>
                                 </div>
-                                <h3 class="mt-3 mb-0">€<%= totalPaid.toFixed(2) %></h3>
+                                <h3 class="mt-3 mb-0">€<%= total.toFixed(2) %></h3>
+                                <br>
                             </div>
                         </div>
 
@@ -43,8 +44,8 @@
                                     <h5 class="text-muted mb-0">Top Contributore</h5>
                                     <i class="bi bi-trophy text-warning fs-4"></i>
                                 </div>
-                                <h3 class="mt-3 mb-0"><%= highestPayingUser.name %></h3>
-                                <p class="text-muted mb-0">€<%= highestPayingUser.amount.toFixed(2) %></p>
+                                <h3 class="mt-3 mb-0">LALALALA</h3> <!-- TODO! -->
+                                <p class="text-muted mb-0">€1000000</p>
                             </div>
                         </div>
                     </div>
@@ -55,41 +56,34 @@
         <!-- Debts Matrix -->
         <div class="col-md-4">
             <div class="card shadow-sm h-100">
-                <div class="card-body">
-                    <h4 class="card-title text-center mb-4">Matrice dei Debiti</h4>
-                    <div class="table-responsive">
-                        <table class="table table-sm">
-                            <thead class="table-light">
+            <div class="card-body">
+                <h4 class="card-title my-2">Riepilogo Spese</h4>
+                <% if (transactionsToSettle.length === 0) { %>
+                    <div class="alert alert-success text-center mt-4">Nessun debito da saldare!</div>
+                <% } else { %>
+                    <div class="table-responsive mt-4">
+                        <table class="table table-bordered">
+                            <thead class="table-primary">
                                 <tr>
-                                    <th scope="col">Deve a</th>
-                                    <% participants.forEach(p => { %>
-                                        <th scope="col" class="text-nowrap"><%= p.name %></th>
-                                    <% }) %>
+                                    <th>Chi Paga</th>
+                                    <th>A Chi</th>
+                                    <th>Importo (€)</th>
                                 </tr>
                             </thead>
                             <tbody>
-                                <% for (let p of participants) { %>
+                                <% transactionsToSettle.forEach(s => { %>
                                     <tr>
-                                        <td class="text-nowrap"><%= p.name %></td>
-                                        <% for (let otherParticipant of participants) { %>
-                                            <% if (p.name !== otherParticipant.name) { %>
-                                                <% const amount = participantDebts[p.name][otherParticipant.name] %>
-                                                <td class="text-nowrap">
-                                                    <span class="<%= amount > 0 ? 'text-success' : 'text-danger' %>">
-                                                        €<%= amount.toFixed(2) %>
-                                                    </span>
-                                                </td>
-                                            <% } else { %>
-                                                <td>-</td>
-                                            <% } %>
-                                        <% } %>
+                                        <td><strong><%= s.from %></strong></td>
+                                        <td><strong><%= s.to %></strong></td>
+                                        <td class="text-end">€<%= s.amount %></td>
                                     </tr>
-                                <% } %>
+                                <% }) %>
                             </tbody>
                         </table>
                     </div>
-                </div>
-            </div>
+                <% } %>
+            </div> 
+        </div>          
         </div>
     </div>
 
@@ -97,13 +91,13 @@
     <div class="mt-5">
         <h4 class="mb-4">Cronologia Transazioni</h4>
         <div class="transaction-timeline">
-            <% for (let transaction of transactions) { %>
+            <% for (let t of transactions) { %>
                 <div class="card shadow-sm mb-3 transaction-card">
                     <div class="card-body">
                         <div class="d-flex justify-content-between align-items-center mb-3">
                             <h5 class="card-title mb-0">
                                 <i class="bi bi-calendar-event me-2"></i>
-                                <%= transaction.createdAt.toLocaleDateString('it-IT', { 
+                                <%= t.createdAt.toLocaleDateString('it-IT', { 
                                     weekday: 'long', 
                                     year: 'numeric', 
                                     month: 'long', 
@@ -115,17 +109,25 @@
                                     <i class="bi bi-three-dots-vertical"></i>
                                 </button>
                                 <ul class="dropdown-menu dropdown-menu-end">
-                                    <li><a class="dropdown-item" href="#">
+                                    <li><a class="dropdown-item" href="/<%= group.title %>/<%= t._id %>/editTransaction">
                                         <i class="bi bi-pencil me-2"></i>Modifica
                                     </a></li>
-                                    <li><a class="dropdown-item text-danger" href="#">
-                                        <i class="bi bi-trash me-2"></i>Elimina
-                                    </a></li>
+                                    <li>
+                                        <form action="/<%=group._id%>/<%=t._id%>?_method=DELETE" method="post">
+                                            <button 
+                                                class="dropdown-item text-danger"
+                                                type="submit"
+                                                onclick="return confirm('Are you sure you want to delete this group?')"
+                                            >
+                                                <i class="bi bi-trash me-2"></i>Elimina
+                                            </button>
+                                        </form>
+                                    </li>
                                 </ul>
                             </div>
                         </div>
                         <div class="row g-3">
-                            <% for (let payment of transaction.payments) { %>
+                            <% for (let payment of t.payments) { %>
                                 <div class="col-sm-6 col-md-4">
                                     <div class="p-3 bg-light rounded-3">
                                         <div class="d-flex justify-content-between align-items-center">

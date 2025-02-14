@@ -1,0 +1,24 @@
+<% layout('../layouts/boilerplate.ejs') -%>
+
+    <div class="row">
+        <div class="col-md-6 offset-md-3 my-5">
+            <h3 class="text-center mb-5">Edit Transaction</h3>
+            <form class="form-inline" method="post" action="/<%= group.title %>/<%= transaction._id %>/?_method=PATCH">
+                <% for(let t of transaction.payments) { %>
+                    <div class="row mb-2">
+                        <div class="col">
+                            <input type="text" class="form-control" name="name[]" value="<%= t.name %>"
+                                readonly>
+                        </div>
+                        <div class="col-4">
+                            <div class="input-group">
+                                <span class="input-group-text">€</span>
+                                <input type="number" min="0" class="form-control" name="amount[]" value="<%= t.amount %>">
+                            </div>
+                        </div>
+                    </div>
+                    <% } %>
+                        <button type="submit" class="btn btn-success btn-lg w-100">Submit</button>
+            </form>
+        </div>
+    </div>
