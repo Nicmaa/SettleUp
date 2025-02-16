@@ -1,0 +1,24 @@
+<% layout('../layouts/boilerplate.ejs') -%>
+    <div class="row">
+        <div class="col-8 offset-2">
+            <div class="alert alert-danger text-center" role="alert">
+                <h4 class="alert-heading">
+                    <%= status %> - 🚨 Oops, qualcosa è andato storto! 🚨
+                </h4>
+                <p class="mt-3"><strong>Messaggio:</strong>
+                    <%= message %>
+                </p>
+                <p>Abbiamo provato a sistemarlo con nastro adesivo e un po' di colla, ma sembra che il server abbia
+                    deciso di fare i capricci. 🤖💥</p>
+                <hr>
+                <p class="mb-3">Niente panico! Puoi provare una delle seguenti opzioni:</p>
+
+                <div class="d-flex justify-content-center gap-3">
+                    <a href="/" class="btn btn-primary">🏠 Torna alla Home</a>
+                    <button onclick="location.reload()" class="btn btn-warning">🔄 Riprova</button>
+                </div>
+
+                <p class="mt-3">Oppure... offrirci un caffè mentre ci lavoriamo. ☕😅</p>
+            </div>
+        </div>
+    </div>
