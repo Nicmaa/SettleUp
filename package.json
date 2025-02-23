@@ -12,15 +12,18 @@
   },
   "keywords": [],
   "author": "",
-  "license": "ISC",
+  "license": "MIT",
   "bugs": {
     "url": "https://github.com/Nicmaa/SettleUp/issues"
   },
   "homepage": "https://github.com/Nicmaa/SettleUp#readme",
   "dependencies": {
+    "connect-flash": "^0.1.1",
     "ejs": "^3.1.10",
     "ejs-mate": "^4.0.0",
     "express": "^4.21.2",
+    "express-session": "^1.18.1",
+    "joi": "^17.13.3",
     "method-override": "^3.0.0",
     "mongoose": "^8.10.0"
   }

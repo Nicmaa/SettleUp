@@ -1,0 +1,86 @@
+<% layout('../layouts/boilerplate.ejs') -%>
+
+    <div class="row">
+        <div class="col-md-6 offset-md-3 my-5">
+            <h3 class="text-center">Modifica il gruppo</h3>
+            <form action="/api/groups/<%= group._id %>?_method=PUT" method="POST" novalidate class="validated-form">
+                <div class="form-group mb-3">
+                    <label for="name">Titolo</label>
+                    <input type="text" class="form-control" id="name" name="name" value="<%= group.name %>" required>
+                    <div class="valid-feedback">
+                        Tutto bene!
+                    </div>
+                    <div class="invalid-feedback">
+                        Perfavore scrivi un titolo!
+                    </div>
+                </div>
+                <div class="form-group mb-3">
+                    <label for="description">Descrizione</label>
+                    <textarea class="form-control" name="description" id="description" rows="5"><%= group.description %></textarea>
+                </div>
+                <div class="form-group mb-3">
+                    <label for="image">URL Immagine</label>
+                    <input type="text" class="form-control" id="image" name="image" value="<%= group.image %>">
+                </div>
+                <div class="form-group mb-3">
+                    <label class="mb-2" for="participants">Partecipanti:</label>
+                    <div id="listParticipants">
+                        <% group.participants.forEach((p, index)=> { %>
+                            <div class="input-group mb-2">
+                                <input type="text" name="participants[]" class="form-control" value="<%= p %>"
+                                    required>
+                                <button type="button" class="btn btn-outline-danger removeParticipant">X</button>
+                                <div class="valid-feedback">
+                                    Tutto bene!
+                                </div>
+                                <div class="invalid-feedback">
+                                    Perfavore scrivi il nome di un partecipante!
+                                </div>
+                            </div>
+                            <% }); %>
+                    </div>
+                    <button id="addParticipant" type="button" class="btn btn-outline-primary mt-2">+ Aggiungi Partecipante</button>
+                </div>
+
+                <button type="submit" class="btn btn-success btn-lg w-100">Invia</button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", () => {
+            const addBtn = document.getElementById("addParticipant");
+            const list = document.getElementById("listParticipants");
+
+            addBtn.addEventListener("click", function (event) {
+                event.preventDefault();
+                const div = document.createElement("div");
+                div.className = "input-group mb-2";
+
+                const input = document.createElement("input");
+                input.type = "text";
+                input.name = "participants[]";
+                input.className = "form-control";
+                input.placeholder = "Nuovo partecipante";
+                input.autofocus = true;
+
+                const removeBtn = document.createElement("button");
+                removeBtn.type = "button";
+                removeBtn.className = "btn btn-outline-danger removeParticipant";
+                removeBtn.innerHTML = "X";
+                removeBtn.addEventListener("click", function () {
+                    div.remove();
+                });
+
+                div.appendChild(input);
+                div.appendChild(removeBtn);
+                list.appendChild(div);
+            });
+
+            document.addEventListener("click", function (event) {
+                if (event.target.classList.contains("removeParticipant")) {
+                    event.target.parentElement.remove();
+                }
+            });
+        });
+    </script>

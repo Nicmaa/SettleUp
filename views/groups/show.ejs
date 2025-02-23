@@ -4,7 +4,7 @@
     <!-- Group Header -->
     <div class="text-center mb-5">
         <h2 class="display-5 text-primary mb-3">
-            <b><%= group.title %></b>
+            <b><%= group.name %></b>
         </h2>
         <p class="lead text-muted">
             <%= group.description %>
@@ -19,7 +19,7 @@
                 <div class="card-body">
                     <div class="d-flex justify-content-between align-items-center mb-4">
                         <h4 class="card-title m-0">Dashboard Overview</h4>
-                        <a href="/<%= group.title %>/newTransaction" class="btn btn-primary">
+                        <a href="/api/transactions/new/<%= group._id %>" class="btn btn-primary">
                             <i class="bi bi-plus-circle me-2"></i>Nuova Transazione
                         </a>
                     </div>
@@ -71,13 +71,13 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                <% transactionsToSettle.forEach(s => { %>
+                                <% for(let s of transactionsToSettle) { %>
                                     <tr>
                                         <td><strong><%= s.from %></strong></td>
                                         <td><strong><%= s.to %></strong></td>
                                         <td class="text-end">€<%= s.amount %></td>
                                     </tr>
-                                <% }) %>
+                                <% } %>
                             </tbody>
                         </table>
                     </div>
@@ -109,11 +109,11 @@
                                     <i class="bi bi-three-dots-vertical"></i>
                                 </button>
                                 <ul class="dropdown-menu dropdown-menu-end">
-                                    <li><a class="dropdown-item" href="/<%= group.title %>/<%= t._id %>/editTransaction">
+                                    <li><a class="dropdown-item" href="/api/transactions/<%= t._id %>/edit">
                                         <i class="bi bi-pencil me-2"></i>Modifica
                                     </a></li>
                                     <li>
-                                        <form action="/<%=group._id%>/<%=t._id%>?_method=DELETE" method="post">
+                                        <form action="/api/transactions/<%=group._id%>/<%=t._id%>?_method=DELETE" method="post">
                                             <button 
                                                 class="dropdown-item text-danger"
                                                 type="submit"
@@ -127,12 +127,12 @@
                             </div>
                         </div>
                         <div class="row g-3">
-                            <% for (let payment of t.payments) { %>
+                            <% for (let a of t.amounts) { %>
                                 <div class="col-sm-6 col-md-4">
                                     <div class="p-3 bg-light rounded-3">
                                         <div class="d-flex justify-content-between align-items-center">
-                                            <span class="text-muted"><%= payment.name %></span>
-                                            <span class="badge bg-primary">€<%= payment.amount.toFixed(2) %></span>
+                                            <span class="text-muted"><%= a.user %></span>
+                                            <span class="badge bg-primary">€<%= a.amount.toFixed(2) %></span>
                                         </div>
                                     </div>
                                 </div>
