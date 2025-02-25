@@ -7,6 +7,7 @@ const Transaction = require('../models/Transaction');
 const catchAsync = require('../utilities/catchAsync');
 const ExpressError = require('../utilities/expressError');
 const { groupSchema } = require('../joiSchema.js');
+const { isLoggedIn } = require('../middleware.js');
 
 const validateGroup = (req, res, next) => {
     if (typeof req.body.participants === 'string') {
@@ -30,12 +31,12 @@ router.get('/', catchAsync(async (req, res) => {
 }));
 
 //Form per creare un nuovo gruppo
-router.get('/new', (req, res) => {
+router.get('/new', isLoggedIn, (req, res) => {
     res.render('groups/new');
 });
 
 //Creazione nuovo gruppo
-router.post('/new', validateGroup, catchAsync(async (req, res) => {
+router.post('/new', isLoggedIn, validateGroup, catchAsync(async (req, res) => {
     if (!req.body.participants || req.body.participants.length < 2) {
         req.flash('error','Devono essere presenti almeno 2 partecipanti!');
         return res.redirect('/api/groups/new');

@@ -1,13 +1,242 @@
-/* Base Styles */
-body {
-    background-color: #f8f9fa;
-    font-family: 'Inter', system-ui, -apple-system, sans-serif;
-    color: #2d3748;
-    margin: 0;
-    padding: 0;
+:root {
+    --primary: #4e54c8;
+    --primary-dark: #363795;
+    --accent: #ffca28;
+    --text: #f8f9fa;
+    --background: #1a1a2e;
+    --card-bg: rgba(30, 30, 60, 0.8);
+    --text-dark: #2d3748;
+    --text-light: #f8f9fa;
+    --shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
 }
 
-/* Carousel Container */
+/* Base Styles */
+body {
+    margin: 0;
+    padding: 0;
+    background-color: var(--background);
+    color: var(--text);
+    font-family: 'Segoe UI', 'Inter', system-ui, -apple-system, sans-serif;
+    overflow-x: hidden;
+    min-height: 100vh;
+}
+
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 20px;
+    position: relative;
+    z-index: 10;
+}
+
+header {
+    padding: 20px 0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.logo {
+    font-size: 2rem;
+    font-weight: bold;
+    color: var(--accent);
+}
+
+.hero {
+    text-align: center;
+    padding: 60px 0;
+}
+
+h1 {
+    font-size: 3.5rem;
+    margin-bottom: 16px;
+    background: linear-gradient(45deg, var(--primary), var(--accent));
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+}
+
+.tagline {
+    font-size: 1.5rem;
+    margin-bottom: 40px;
+    opacity: 0.9;
+}
+
+/* Auth Container Styles */
+.auth-container {
+    background: var(--card-bg);
+    max-width: 400px;
+    margin: 0 auto;
+    padding: 30px;
+    border-radius: 10px;
+    box-shadow: var(--shadow);
+}
+
+.auth-tabs {
+    display: flex;
+    margin-bottom: 20px;
+}
+
+.auth-tab {
+    flex: 1;
+    padding: 10px;
+    text-align: center;
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+    transition: all 0.3s;
+}
+
+.auth-tab.active {
+    border-bottom: 2px solid var(--accent);
+    font-weight: bold;
+}
+
+.auth-form input {
+    width: 100%;
+    padding: 12px;
+    margin-bottom: 15px;
+    border: none;
+    border-radius: 5px;
+    background: rgba(255, 255, 255, 0.1);
+    color: var(--text);
+    font-size: 1rem;
+    box-sizing: border-box;
+}
+
+.auth-form input::placeholder {
+    color: rgba(255, 255, 255, 0.6);
+}
+
+/* Button Styles */
+.btn {
+    display: inline-block;
+    padding: 12px 24px;
+    background: linear-gradient(45deg, var(--primary), var(--primary-dark));
+    color: white;
+    border: none;
+    border-radius: 5px;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: all 0.3s;
+    text-transform: uppercase;
+    font-weight: bold;
+    letter-spacing: 1px;
+}
+
+.btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+}
+
+.btn-accent {
+    background: var(--accent);
+    color: #333;
+}
+
+.btn-outline {
+    background: transparent;
+    border: 2px solid var(--primary);
+    color: var(--primary);
+}
+
+.demo-link {
+    display: block;
+    margin-top: 15px;
+    color: var(--accent);
+    text-decoration: underline;
+    cursor: pointer;
+}
+
+/* Features Section */
+.features {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 30px;
+    margin: 60px 0;
+}
+
+.feature {
+    flex: 1;
+    min-width: 250px;
+    max-width: 350px;
+    background: var(--card-bg);
+    padding: 30px;
+    border-radius: 10px;
+    text-align: center;
+}
+
+.feature-icon {
+    font-size: 2.5rem;
+    margin-bottom: 20px;
+    color: var(--accent);
+}
+
+/* How It Works Section */
+.how-it-works {
+    margin: 60px 0;
+    text-align: center;
+}
+
+.steps {
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 20px;
+    margin-top: 40px;
+}
+
+.step {
+    flex: 1;
+    min-width: 200px;
+    max-width: 300px;
+    position: relative;
+}
+
+.step-number {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 40px;
+    height: 40px;
+    background: var(--accent);
+    color: #333;
+    border-radius: 50%;
+    font-size: 1.2rem;
+    font-weight: bold;
+    margin: 0 auto 20px;
+}
+
+/* Falling Money Animation */
+.falling-money {
+    position: absolute;
+    top: -60px;
+    width: 60px;
+    height: auto;
+    opacity: 0.8;
+    z-index: 1;
+    cursor: pointer;
+}
+
+.money-interactive {
+    animation-play-state: paused !important;
+    transform: scale(1.2);
+    z-index: 100;
+}
+
+.tooltip {
+    position: absolute;
+    background: rgba(0, 0, 0, 0.8);
+    color: white;
+    padding: 10px;
+    border-radius: 5px;
+    font-size: 0.9rem;
+    max-width: 200px;
+    z-index: 200;
+    display: none;
+}
+
+/* Carousel Styles - Adapted to match homepage */
 .carousel-container {
     display: flex;
     align-items: center;
@@ -15,12 +244,11 @@ body {
     gap: 1rem;
     padding: 2rem 0;
     max-width: 1200px;
-    margin: auto;
+    margin: 60px auto;
 }
 
-/* Navigation Buttons */
 .carousel-nav {
-    background: white;
+    background: var(--card-bg);
     border: none;
     border-radius: 50%;
     width: 3rem;
@@ -28,14 +256,15 @@ body {
     display: flex;
     align-items: center;
     justify-content: center;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
     transition: transform 0.2s ease, background 0.2s ease;
     z-index: 10;
     cursor: pointer;
+    color: var(--text);
 }
 
 .carousel-nav:hover {
-    background: #f1f3f5;
+    background: var(--primary);
     transform: scale(1.1);
 }
 
@@ -43,7 +272,6 @@ body {
     transform: scale(0.95);
 }
 
-/* Carousel Wrapper */
 .carousel-wrapper {
     position: relative;
     width: 100%;
@@ -51,7 +279,6 @@ body {
     perspective: 1000px;
 }
 
-/* Card Styles */
 .carousel-card {
     position: absolute;
     width: 100%;
@@ -60,10 +287,11 @@ body {
     opacity: 0;
     transform: translateX(-50%) translateZ(-100px);
     transition: transform 0.5s ease-in-out, opacity 0.5s ease-in-out;
-    background: white;
+    background: var(--card-bg);
     border-radius: 1rem;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    box-shadow: var(--shadow);
     overflow: hidden;
+    color: var(--text);
 }
 
 .carousel-card.active {
@@ -86,7 +314,6 @@ body {
     transform: translateX(20%) translateZ(-100px) scale(0.9);
 }
 
-/* Card Components */
 .card-header {
     position: absolute;
     top: 0.5rem;
@@ -97,14 +324,15 @@ body {
 .btn-icon {
     padding: 0.5rem;
     border-radius: 50%;
-    background: rgba(255, 255, 255, 0.9);
+    background: rgba(255, 255, 255, 0.2);
     border: none;
     transition: transform 0.2s ease, background 0.2s ease;
     cursor: pointer;
+    color: var(--text);
 }
 
 .btn-icon:hover {
-    background: white;
+    background: var(--primary);
     transform: scale(1.1);
 }
 
@@ -123,23 +351,23 @@ body {
     font-size: 1.25rem;
     font-weight: 600;
     margin-bottom: 0.75rem;
-    color: #1a202c;
+    color: var(--accent);
 }
 
 .card-description {
     font-size: 0.875rem;
-    color: #4a5568;
+    color: var(--text);
     line-height: 1.5;
 }
 
-/* Dropdown Menu */
 .dropdown-menu {
     position: absolute !important;
     margin-top: 1rem;
     border-radius: 0.5rem;
     border: none;
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-    background: white;
+    background: var(--card-bg);
+    color: var(--text);
 }
 
 .dropdown-item {
@@ -149,14 +377,33 @@ body {
     gap: 0.5rem;
     transition: background 0.2s ease;
     cursor: pointer;
+    color: var(--text);
 }
 
 .dropdown-item:hover {
-    background-color: #f1f3f5;
+    background-color: var(--primary-dark);
 }
 
 /* Responsive Adjustments */
 @media (max-width: 768px) {
+    h1 {
+        font-size: 2.5rem;
+    }
+
+    .features {
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .feature {
+        max-width: 100%;
+    }
+
+    .steps {
+        flex-direction: column;
+        align-items: center;
+    }
+
     .carousel-card {
         max-width: 300px;
     }

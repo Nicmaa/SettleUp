@@ -1,1 +1,198 @@
-<% layout('../layouts/boilerplate.ejs') -%>
+<!DOCTYPE html>
+<html lang="it">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SettleUp - Dividi le spese, mantieni le amicizie</title>
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+
+<body>
+    <div class="container">
+        <header>
+            <div class="logo">SettleUp</div>
+            <div>
+                <button class="btn btn-outline login-btn">Accedi</button>
+            </div>
+        </header>
+
+        <div class="hero">
+            <h1>Dividi le spese con semplicità</h1>
+            <p class="tagline">Gestisci i conti con amici, famiglia e coinquilini in modo semplice e veloce</p>
+        </div>
+
+        <div class="auth-container" id="auth-box">
+            <div class="auth-tabs">
+                <div class="auth-tab active" id="login-tab">Accedi</div>
+                <div class="auth-tab" id="register-tab">Registrati</div>
+            </div>
+            <div class="auth-form" id="login-form">
+                <form method="post" action="/api/users/login">
+                    <input type="text" name="username" placeholder="Username">
+                    <input type="password" name="password" placeholder="Password">
+                    <button class="btn">Accedi</button>
+                    <div class="demo-link" id="demo-link">Prova la demo senza registrazione</div>
+                </form>
+            </div>
+            <div class="auth-form" id="register-form" style="display: none;">
+                <form method="post" action="/api/users/register">
+                    <input type="text" name="username" placeholder="Username">
+                    <input type="email" name="username" placeholder="Email">
+                    <input type="password" name="password" placeholder="Password">
+                    <button class="btn">Registrati</button>
+                    <div class="demo-link" id="demo-link-reg">Prova la demo senza registrazione</div>
+                </form>
+            </div>
+        </div>
+
+        <div class="features">
+            <div class="feature">
+                <div class="feature-icon">💸</div>
+                <h3>Divisione Facile</h3>
+                <p>Dividi le spese facilmente tra amici, famiglia o coinquilini con pochi click</p>
+            </div>
+            <div class="feature">
+                <div class="feature-icon">📊</div>
+                <h3>Tracciamento in Tempo Reale</h3>
+                <p>Monitora chi deve cosa in tempo reale con un'interfaccia semplice e intuitiva</p>
+            </div>
+            <div class="feature">
+                <div class="feature-icon">🔒</div>
+                <h3>Saldi Semplificati</h3>
+                <p>Minimizza i trasferimenti di denaro con il nostro algoritmo di ottimizzazione</p>
+            </div>
+        </div>
+
+        <div class="how-it-works">
+            <h2>Come Funziona</h2>
+            <div class="steps">
+                <div class="step">
+                    <div class="step-number">1</div>
+                    <h3>Crea un Gruppo</h3>
+                    <p>Crea un gruppo per una vacanza, casa condivisa o qualsiasi situazione comune</p>
+                </div>
+                <div class="step">
+                    <div class="step-number">2</div>
+                    <h3>Aggiungi Spese</h3>
+                    <p>Registra le spese quando si verificano e specifica chi ha pagato</p>
+                </div>
+                <div class="step">
+                    <div class="step-number">3</div>
+                    <h3>Saldi Automatici</h3>
+                    <p>L'app calcola automaticamente chi deve a chi e quanto</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="tooltip" class="tooltip"></div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
+        integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz"
+        crossorigin="anonymous"></script>
+    <script>
+        // Falling money animation
+        const moneyImages = [
+            '/images/money.png',
+            '/images/banconota500.jpg',
+            '/images/banconota20.jpg',
+        ];
+
+        const tooltips = [
+            "Dividi le spese del ristorante equamente",
+            "Monitora chi deve ancora pagare",
+            "Calcola automaticamente i saldi",
+            "Crea gruppi personalizzati",
+            "Esporta i report delle spese",
+            "Registra spese ricorrenti",
+            "Salda i conti con facilità"
+        ];
+
+        function createMoney() {
+            const money = document.createElement("img");
+            money.classList.add("falling-money");
+
+            // Use placeholder images since real images might not be available
+            // In a real implementation, you would use your actual image paths
+            const imageIndex = Math.floor(Math.random() * moneyImages.length);
+            money.src = moneyImages[imageIndex]; // Fallback to the two images you provided
+            money.dataset.tooltip = tooltips[imageIndex];
+
+            // Random position and animation duration
+            money.style.left = Math.random() * window.innerWidth + "px";
+            const duration = Math.random() * 3 + 3; // 3-6 seconds
+            money.style.animation = `falling ${duration}s linear`;
+
+            // Random rotation
+            const rotation = Math.random() * 360;
+            money.style.transform = `rotate(${rotation}deg)`;
+
+            document.body.appendChild(money);
+
+            // Add interactivity
+            money.addEventListener('click', function () {
+                this.classList.toggle('money-interactive');
+                if (this.classList.contains('money-interactive')) {
+                    showTooltip(this);
+                } else {
+                    hideTooltip();
+                }
+            });
+
+            // Remove after animation completes
+            setTimeout(() => {
+                money.remove();
+            }, duration * 1000);
+        }
+
+        function showTooltip(element) {
+            const tooltip = document.getElementById('tooltip');
+            tooltip.textContent = element.dataset.tooltip;
+            tooltip.style.display = 'block';
+
+            const rect = element.getBoundingClientRect();
+            tooltip.style.top = `${rect.top - 40}px`;
+            tooltip.style.left = `${rect.left + rect.width / 2 - 100}px`;
+        }
+
+        function hideTooltip() {
+            document.getElementById('tooltip').style.display = 'none';
+        }
+
+        // Create falling money at intervals
+        setInterval(createMoney, 300);
+
+        // Add keyframes for the falling animation
+        const style = document.createElement("style");
+        style.innerHTML = `
+            @keyframes falling {
+                0% { transform: translateY(-50px) rotate(0deg); }
+                100% { transform: translateY(${window.innerHeight + 100}px) rotate(360deg); }
+            }
+        `;
+        document.head.appendChild(style);
+
+        // Tab switching functionality
+        document.getElementById('login-tab').addEventListener('click', function () {
+            this.classList.add('active');
+            document.getElementById('register-tab').classList.remove('active');
+            document.getElementById('login-form').style.display = 'block';
+            document.getElementById('register-form').style.display = 'none';
+        });
+
+        document.getElementById('register-tab').addEventListener('click', function () {
+            this.classList.add('active');
+            document.getElementById('login-tab').classList.remove('active');
+            document.getElementById('register-form').style.display = 'block';
+            document.getElementById('login-form').style.display = 'none';
+        });
+
+        // Login button in header
+        document.querySelector('.login-btn').addEventListener('click', function () {
+            document.getElementById('auth-box').scrollIntoView({ behavior: 'smooth' });
+        });
+    </script>
+</body>
+
+</html>

@@ -4,9 +4,12 @@ const engine = require('ejs-mate');
 const path = require('path');
 const session = require('express-session');
 const flash = require('connect-flash');
+const passport = require('passport');
+const LocalStrategy = require('passport-local');
 
 const connectDB = require('./config/db');
 const ExpressError = require('./utilities/expressError');
+const User = require('./models/User');
 
 const groupRoutes = require('./routes/groups');
 const transactionRoutes = require('./routes/transactions');
@@ -31,19 +34,29 @@ const sessionConfig = {
         maxAge: 1000 * 60 * 60 * 24 * 7,
     }
 }
-app.use(session(sessionConfig))
+app.use(session(sessionConfig));
+app.use(passport.initialize());
+app.use(passport.session());
 app.use(flash());
 app.use((req, res, next) => {
+    res.locals.currentUser = req.user;
     res.locals.success = req.flash('success');
     res.locals.error = req.flash('error');
     next();
-})
+});
+
+passport.use(new LocalStrategy(User.authenticate()));
+passport.serializeUser(User.serializeUser());
+passport.deserializeUser(User.deserializeUser());
 
 //Router
-//app.use('/api/users', userRoutes);
+app.use('/api/users', userRoutes);
 app.use('/api/groups', groupRoutes);
 app.use('/api/transactions', transactionRoutes);
 
+app.get('/', (req,res)=> {
+    res.render('home');
+});
 
 //Gestione errori generici
 app.all(/(.*)/, (req, res, next) => {

@@ -1,0 +1,45 @@
+<% layout('./layouts/layout') -%>
+
+    <div class="row">
+        <div class="col-md-6 offset-md-3 my-5">
+            <h3 class="text-center mb-5">Registrati</h3>
+            <form class="form-inline validated-form" method="post" action="/api/users/register" novalidate>
+                <div class="mb-3">
+                    <label for="username" class="form-label">Nome utente:</label>
+                    <input type="text" class="form-control" id="username" name="username" required>
+                    <div class="valid-feedback">
+                        Tutto bene!
+                    </div>
+                    <div class="invalid-feedback">
+                        Perfavore scrivi un nome utente!
+                    </div>
+                </div>
+                <div class="mb-3">
+                    <label for="email" class="form-label">Email:</label>
+                    <input type="email" class="form-control" id="email" name="email" required>
+                    <div class="valid-feedback">
+                        Tutto bene!
+                    </div>
+                    <div class="invalid-feedback">
+                        Perfavore scrivi una mail!
+                    </div>
+                </div>
+                <div class="mb-3">
+                    <label for="password" class="form-label">Password:</label>
+                    <input type="password" class="form-control" id="password" name="password" required>
+                    <div class="valid-feedback">
+                        Tutto bene!
+                    </div>
+                    <div class="invalid-feedback">
+                        Perfavore scrivi una password!
+                    </div>
+                </div>
+                <div class="mb-3">
+                    <a href="/api/users/login">Sei già registrato? Clicca qui!</a>
+                </div>
+                <div class="mt-3 d-flex justify-content-center">
+                    <button class="btn btn-success">Registrati!</button>
+                </div>
+            </form>
+        </div>
+    </div>

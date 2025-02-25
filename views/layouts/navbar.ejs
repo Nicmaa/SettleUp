@@ -1,0 +1,22 @@
+<nav class="navbar sticky-top navbar-expand-lg bg-dark border-bottom border-body" data-bs-theme="dark">
+    <div class="container-fluid">
+        <a class="navbar-brand fw-bold" href="/api/groups">SettleUp</a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNavAltMarkup"
+            aria-controls="navbarNavAltMarkup" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNavAltMarkup">
+            <div class="navbar-nav">
+                <a class="nav-link" href="/api/groups/new">Aggiungi Gruppo</a>
+            </div>
+            <div class="navbar-nav">
+                <% if(!currentUser) {%>
+                    <a class="nav-link" href="/api/users/register">Registrati</a>
+                    <a class="nav-link" href="/api/users/login">Login</a>
+                <% } else { %>
+                    <a class="nav-link" href="/api/users/logout">Logout</a>
+                <% } %>
+            </div>
+        </div>
+    </div>
+</nav>
