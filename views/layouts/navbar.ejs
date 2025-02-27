@@ -1,22 +1,41 @@
-<nav class="navbar sticky-top navbar-expand-lg bg-dark border-bottom border-body" data-bs-theme="dark">
-    <div class="container-fluid">
-        <a class="navbar-brand fw-bold" href="/api/groups">SettleUp</a>
-        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNavAltMarkup"
-            aria-controls="navbarNavAltMarkup" aria-expanded="false" aria-label="Toggle navigation">
-            <span class="navbar-toggler-icon"></span>
-        </button>
-        <div class="collapse navbar-collapse" id="navbarNavAltMarkup">
-            <div class="navbar-nav">
-                <a class="nav-link" href="/api/groups/new">Aggiungi Gruppo</a>
-            </div>
-            <div class="navbar-nav">
-                <% if(!currentUser) {%>
-                    <a class="nav-link" href="/api/users/register">Registrati</a>
-                    <a class="nav-link" href="/api/users/login">Login</a>
-                <% } else { %>
-                    <a class="nav-link" href="/api/users/logout">Logout</a>
-                <% } %>
-            </div>
+<nav class="navbar sticky-top navbar-expand-lg navbar-dark">
+    <div class="container">
+      <a class="navbar-brand" href="/">SettleUp</a>
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <div class="collapse navbar-collapse" id="navbarNav">
+        <ul class="navbar-nav me-auto">
+          <li class="nav-item">
+            <a class="nav-link active" href="/dashboard"><i class="bi bi-house-door"></i> Home</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="/activities"><i class="bi bi-activity"></i> Attività</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="/settlements"><i class="bi bi-cash-coin"></i> Saldi</a>
+          </li>
+        </ul>
+        <div class="d-flex align-items-center">
+          <div class="position-relative me-3">
+            <a href="/notifications" class="nav-link">
+              <i class="bi bi-bell fs-5"></i>
+              <span class="notifications-badge">3</span>
+            </a>
+          </div>
+          <div class="dropdown">
+            <a class="nav-link dropdown-toggle d-flex align-items-center" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+              <span class="me-2">Username</span>
+              <div class="avatar"><img src="<%= currentUser.avatar %>"></div>
+            </a>
+            <ul class="dropdown-menu dropdown-menu-dark" aria-labelledby="userDropdown">
+              <li><a class="dropdown-item" href="/profile"><i class="bi bi-person"></i> Profilo</a></li>
+              <li><a class="dropdown-item" href="/settings"><i class="bi bi-gear"></i> Impostazioni</a></li>
+              <li><hr class="dropdown-divider"></li>
+              <li><a class="dropdown-item" href="/logout"><i class="bi bi-box-arrow-right"></i> Esci</a></li>
+            </ul>
+          </div>
         </div>
+      </div>
     </div>
-</nav>
+  </nav>
