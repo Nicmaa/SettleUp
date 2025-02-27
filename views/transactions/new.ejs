@@ -6,13 +6,22 @@
             <form class="form-inline validated-form" method="post" action="/api/transactions/new/<%= group._id %>" novalidate>
                 <div class="mb-3">
                     <label for="description" class="form-label">Descrizione (opzionale)</label>
-                    <input type="text" class="form-control" id="description" name="description">
+                    <textarea class="form-control" id="description" name="description"></textarea>
                 </div>
-                
+                <div class="mb-3">
+                    <label for="categories" class="form-label">Categoria</label>
+                    <select class="form-control" id="categories" name="categories">
+                        <% for(cat of categories) { %>
+                            <option value="<%= cat %>"><%= cat %></option>
+                        <% } %>
+                    </select>
+                </div>
+                <label class="mb-2">Partecipanti</label>
                 <% for(let p of group.participants) { %>
                     <div class="row mb-2">
                         <div class="col">
-                            <input type="text" class="form-control" name="user[]" value="<%= p %>" readonly>
+                            <input type="text" class="form-control" name="username[]" value="<%= p.username %>" readonly>
+                            <input type="hidden" name="user[]" value="<%= p._id %>">
                         </div>
                         <div class="col-4">
                             <div class="input-group">
@@ -22,7 +31,7 @@
                         </div>
                     </div>
                 <% } %>
-                <button type="submit" class="btn btn-success btn-lg w-100">Invia</button>
+                <button type="submit" class="btn btn-success mt-3 w-100">Invia</button>
             </form>
         </div>
     </div>

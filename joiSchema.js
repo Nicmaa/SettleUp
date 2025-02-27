@@ -14,7 +14,7 @@ module.exports.transactionSchema = Joi.object({
     amounts: Joi.array().items(
         Joi.object({
             user: Joi.string().required(), // PER ORA STRINGA, poi ObjectId
-            amount: Joi.number().precision(2).required() 
+            amount: Joi.number().precision(2).required()
         })
     ).min(1).required(),
     createdAt: Joi.date().default(Date.now),
