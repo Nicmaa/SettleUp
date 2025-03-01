@@ -17,14 +17,14 @@
 
                 <div class="form-group mb-3">
                     <label for="description">Descrizione</label>
-                    <textarea class="form-control" name="description" id="description" rows="5"></textarea>
+                    <textarea class="form-control" name="description" id="description" rows="3"></textarea>
                 </div>
                 <div class="form-group mb-3">
                     <label for="image">URL Immagine</label>
                     <input type="url" class="form-control" id="image" name="image">
                 </div>
                 <div class="form-group mb-3">
-                    <label class="mb-2" for="participants">Partecipanti:</label>
+                    <label class="mb-2" for="participants[]">Partecipanti:</label>
                     <div id="listParticipants">
                         <div class="input-group mb-2">
                             <select class="form-control" name="participants[]" id="participants[]" required>
@@ -32,7 +32,7 @@
                                     <option value="<%= u._id %>"><%= u.username %></option>
                                 <% } %>
                             </select>
-                            <button type="button" class="btn btn-outline-danger removeParticipant">X</button>
+                            <button type="button" class="btn btn-outline-danger">X</button>
                             <div class="valid-feedback">
                                 Tutto bene!
                             </div>
@@ -41,11 +41,11 @@
                             </div>
                         </div>
                     </div>
-                    <button id="addParticipant" type="button" class="btn btn-outline-primary mt-2">+ Aggiungi
+                    <button id="addParticipant" type="button" class="btn btn-outline mt-2">+ Aggiungi
                         Partecipante</button>
                 </div>
 
-                <button type="submit" class="btn btn-success btn-lg w-100">Invia</button>
+                <button type="submit" class="button btn-lg w-100">Invia</button>
             </form>
         </div>
     </div>
@@ -76,7 +76,7 @@
     
     const removeBtn = document.createElement("button");
     removeBtn.type = "button";
-    removeBtn.className = "btn btn-outline-danger removeParticipant";
+    removeBtn.className = "btn btn-outline-danger";
     removeBtn.innerHTML = "X";
     removeBtn.addEventListener("click", function () {
       div.remove();

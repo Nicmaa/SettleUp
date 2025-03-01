@@ -4,8 +4,8 @@ const Transaction = require('./models/Transaction');
 module.exports.isLoggedIn = (req, res, next) => {
     if (!req.isAuthenticated()) {
         req.session.returnTo = req.originalUrl;
-        req.flash('error', 'You must be signed in first!');
-        return res.redirect('/api/users/login');
+        req.flash('error', 'Devi essere loggato per effettuare questa operazione!');
+        return res.redirect('/');
     }
     next();
 };

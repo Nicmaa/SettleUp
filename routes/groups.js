@@ -21,9 +21,10 @@ const validateGroup = (req, res, next) => {
 };
 
 //Tutti i gruppi dell'utente connesso
-router.get('/', catchAsync(async (req, res) => {
+router.get('/', isLoggedIn, catchAsync(async (req, res) => {
     const group = await Group.find({ participants: req.user._id });
-    res.render('groups/index', { group });
+    const totalSpent = await group.totalSpent;
+    res.render('groups/index', { group, totalSpent });
 }));
 
 //Form per creare un nuovo gruppo
@@ -65,15 +66,17 @@ router.get('/:id', isLoggedIn, isGroupOwnerOrParticipant, catchAsync(async (req,
             path: 'transactions',
             options: { sort: { createdAt: -1 } },
             populate: [
-                { path: 'amounts.user', select: 'username' }
+                { path: 'amounts.user', select: 'username' },
+                { path: 'createdAt' }
             ]
         });
 
     if (!group) throw new ExpressError("Gruppo non trovato!", 404);
 
     const { transactionsToSettle } = await Group.calculateBalances(group.transactions);
+    const totalSpent = await group.totalSpent;
 
-    res.render('groups/show', { group, transactionsToSettle });
+    res.render('groups/show', { group, transactionsToSettle, totalSpent });
 }));
 
 // Form per modificare un gruppo
@@ -104,7 +107,7 @@ router.put('/:id', isLoggedIn, isGroupOwner, validateGroup, catchAsync(async (re
     if (!group) throw new ExpressError("Gruppo non trovato!", 404);
 
     req.flash('success', 'Gruppo modificato con successo!');
-    res.redirect(`/api/groups${group._id}`);
+    res.redirect(`/api/groups/${group._id}`);
 }));
 
 // Elimina un gruppo e tutte le sue transazioni

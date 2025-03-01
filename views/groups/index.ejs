@@ -14,7 +14,7 @@
               <div class="group-card">
                 <div class="group-card-header d-flex align-items-center">
                   <div class="group-avatar">
-                    <i class="bi bi-people"></i>
+                    <img src="<%= g.image %>">
                   </div>
                   <div>
                     <h3 class="mb-0"><%= g.name %></h3>
@@ -24,7 +24,7 @@
                 <div class="group-card-body">
                   <div class="d-flex justify-content-between mb-3">
                     <div class="stats-badge">
-                      <i class="bi bi-receipt"></i> € <%= g.totalSpent || 0 %> spesi
+                      <i class="bi bi-receipt"></i> € <%= totalSpent || 0 %> spesi
                     </div>
                     <div class="stats-badge">
                       <i class="bi bi-calendar3"></i> <%= g.lastActivity || 0 %>
@@ -48,7 +48,6 @@
           <% }); %>
         </div>
       <% } else { %>
-        <!-- Empty state -->
         <div class="empty-state">
           <div class="empty-state-icon">
             <i class="bi bi-people"></i>
@@ -66,7 +65,7 @@
   <!-- Floating action button (visible only when groups exist) -->
   <% if (group && group.length > 0) { %>
     <div class="floating-btn" data-bs-toggle="modal" data-bs-target="#createGroupModal">
-      <i class="bi bi-plus-lg"></i>
+      <a href="/api/groups/new"><i class="bi bi-plus-lg"></i></a>
     </div>
   <% } %>
 

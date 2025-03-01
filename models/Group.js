@@ -32,75 +32,49 @@ groupSchema.virtual('participantsCount').get(function () {
     return this.participants.length;
 });
 
-groupSchema.virtual('totalSpent').get(function () {
-    if (!this.transactions || !this.transactions.length) return 0;
-
-    let total = 0;
-    for (let transaction of this.transactions) {
-        if (transaction.totalAmount) {
-            total += transaction.totalAmount;
-        }
-    }
-    return total;
+groupSchema.virtual('totalSpent').get(async function () {
+    await this.populate('transactions');
+    return this.transactions.reduce((sum, transaction) => sum + transaction.amounts.reduce((s, p) => s + p.amount, 0), 0);
 });
 
 groupSchema.statics.calculateBalances = function (transactions) {
-    // Aggrega i pagamenti per persona
-    let paymentMap = new Map();
-
-    transactions.forEach(transaction => {
-        transaction.amounts.forEach(payment => {
-            if (paymentMap.has(payment.user)) {
-                paymentMap.set(payment.user, paymentMap.get(payment.user) + payment.amount);
-            } else {
-                paymentMap.set(payment.user, payment.amount);
-            }
+    let balances = transactions.reduce((acc, t) => {
+        t.amounts.forEach(({ user, amount }) => {
+            acc[user] = (acc[user] || 0) + amount;
         });
-    });
+        return acc;
+    }, {});
 
-    // Converte la mappa in un array
-    let payments = Array.from(paymentMap, ([user, amount]) => ({ user, amount }));
+    let total = Object.values(balances).reduce((sum, amount) => sum + amount, 0);
+    let perPerson = total / Object.keys(balances).length;
 
-    // Calcola il totale e la quota per persona
-    const total = payments.reduce((sum, p) => sum + p.amount, 0);
-    const perPerson = total / payments.length;
-
-    // Calcola il bilancio di ciascuno
-    let balances = payments.map(p => ({
-        user: p.user,
-        balance: p.amount - perPerson
+    let debts = Object.entries(balances).map(([user, amount]) => ({
+        user,
+        balance: amount - perPerson
     }));
 
-    // Separa creditori (+) e debitori (-)
-    let creditors = balances.filter(p => p.balance > 0).sort((a, b) => b.balance - a.balance);
-    let debtors = balances.filter(p => p.balance < 0).sort((a, b) => a.balance - b.balance);
+    let creditors = debts.filter(d => d.balance > 0).sort((a, b) => b.balance - a.balance);
+    let debtors = debts.filter(d => d.balance < 0).sort((a, b) => a.balance - b.balance);
 
-    // Lista delle transazioni per bilanciare
     let transactionsToSettle = [];
     let i = 0, j = 0;
 
     while (i < debtors.length && j < creditors.length) {
         let debtor = debtors[i];
         let creditor = creditors[j];
-
         let amountToPay = Math.min(-debtor.balance, creditor.balance);
 
-        transactionsToSettle.push({
-            from: debtor.user,
-            to: creditor.user,
-            amount: amountToPay.toFixed(2)
-        });
+        transactionsToSettle.push({ from: debtor.user, to: creditor.user, amount: amountToPay.toFixed(2) });
 
-        // Aggiorna i bilanci
         debtor.balance += amountToPay;
         creditor.balance -= amountToPay;
 
-        // Se qualcuno ha saldo 0, passa al successivo
         if (debtor.balance === 0) i++;
         if (creditor.balance === 0) j++;
     }
 
     return { transactionsToSettle };
-}
+};
+
 
 module.exports = mongoose.model('Group', groupSchema);
