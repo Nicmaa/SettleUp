@@ -22,9 +22,15 @@ const validateGroup = (req, res, next) => {
 
 //Tutti i gruppi dell'utente connesso
 router.get('/', isLoggedIn, catchAsync(async (req, res) => {
-    const group = await Group.find({ participants: req.user._id });
-    const totalSpent = await group.totalSpent;
-    res.render('groups/index', { group, totalSpent });
+    const groups = await Group.find({ participants: req.user._id })
+        .populate('participants', 'username avatar')
+        .sort({ updatedAt: -1 });
+
+    for (let group of groups) {
+        await group.populate('transactions');
+    }
+
+    res.render('groups/index', { groups });
 }));
 
 //Form per creare un nuovo gruppo
@@ -40,8 +46,16 @@ router.post('/new', isLoggedIn, validateGroup, catchAsync(async (req, res) => {
         return res.redirect('/api/groups/new');
     }
 
+    //Controllo che creatore sia nei partecipanti
     if (!req.body.participants.includes(req.user._id.toString())) {
         req.body.participants.push(req.user._id);
+    }
+
+    //Controllo duplicati
+    const participantsSet = new Set(req.body.participants);
+    if (participantsSet.size !== req.body.participants.length) {
+        req.flash('error', 'Hai inserito lo stesso partecipante più volte!');
+        return res.redirect('/api/groups/new');
     }
 
     const newGroup = new Group({
@@ -60,7 +74,7 @@ router.post('/new', isLoggedIn, validateGroup, catchAsync(async (req, res) => {
 // Mostra un gruppo specifico
 router.get('/:id', isLoggedIn, isGroupOwnerOrParticipant, catchAsync(async (req, res) => {
     const group = await Group.findById(req.params.id)
-        .populate('participants', 'username')
+        .populate('participants', 'username avatar')
         .populate('owner', 'username')
         .populate({
             path: 'transactions',
@@ -73,16 +87,14 @@ router.get('/:id', isLoggedIn, isGroupOwnerOrParticipant, catchAsync(async (req,
 
     if (!group) throw new ExpressError("Gruppo non trovato!", 404);
 
-    const { transactionsToSettle } = await Group.calculateBalances(group.transactions);
-    const totalSpent = await group.totalSpent;
-
-    res.render('groups/show', { group, transactionsToSettle, totalSpent });
+    res.render('groups/show', { group });
 }));
 
 // Form per modificare un gruppo
 router.get('/:id/edit', isLoggedIn, isGroupOwner, catchAsync(async (req, res) => {
-    const group = await Group.findById(req.params.id).populate('participants', 'username');
+    const group = await Group.findById(req.params.id).populate('participants', 'username avatar');
     if (!group) throw new ExpressError("Gruppo non trovato!", 404);
+
     const users = await User.find({}).select('username _id');
     res.render('groups/edit', { group, users });
 }));

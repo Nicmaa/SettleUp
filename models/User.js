@@ -6,10 +6,22 @@ const userSchema = new Schema({
   email: {
     type: String,
     required: [true, 'Email mancante'],
-    unique: true
+    unique: true,
+    trim: true,
+    lowercase: true,
+    match: [/^\S+@\S+\.\S+$/, 'Formato email non valido']
   },
   avatar: { type: String, default: '/images/default_avatar.jpg' },
-  createdAt: { type: Date, default: Date.now }
+  createdAt: { type: Date, default: Date.now },
+  updatedAt: { type: Date, default: Date.now },
+}, {
+  toJSON: { virtuals: true },
+  id: false
+});
+
+userSchema.pre('save', function(next) {
+  this.updatedAt = Date.now();
+  next();
 });
 
 userSchema.plugin(passport, {

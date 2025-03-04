@@ -34,8 +34,8 @@ const validateTransaction = (req, res, next) => {
 };
 
 // Form per aggiungere una nuova transazione
-router.get('/new/:groupId', isLoggedIn, isGroupOwnerOrParticipant, catchAsync(async (req, res) => {
-    const group = await Group.findById(req.params.groupId)
+router.get('/new/:id', isLoggedIn, isGroupOwnerOrParticipant, catchAsync(async (req, res) => {
+    const group = await Group.findById(req.params.id)
         .populate('participants', 'username');
     if (!group) throw new ExpressError("Gruppo non trovato!", 404);
     const categories = Transaction.schema.path('category').enumValues;
@@ -43,8 +43,11 @@ router.get('/new/:groupId', isLoggedIn, isGroupOwnerOrParticipant, catchAsync(as
 }));
 
 // Creazione nuova transazione
-router.post('/new/:groupId', isLoggedIn, isGroupOwnerOrParticipant, validateTransaction, catchAsync(async (req, res) => {
-    const group = await Group.findById(req.params.groupId);
+router.post('/new/:id', isLoggedIn, isGroupOwnerOrParticipant, validateTransaction, catchAsync(async (req, res) => {
+    const group = await Group.findById(req.params.id).populate({
+        path: 'transactions',
+        populate: { path: 'amounts.user' }
+    });
     if (!group) throw new ExpressError("Gruppo non trovato!", 404);
 
     if (!req.body.amounts || !req.body.amounts.some(a => a.amount > 0)) {
@@ -62,6 +65,13 @@ router.post('/new/:groupId', isLoggedIn, isGroupOwnerOrParticipant, validateTran
     await newTransaction.save();
 
     group.transactions.push(newTransaction._id);
+    const populatedGroup = await Group.findById(group._id).populate({
+        path: 'transactions',
+        populate: { path: 'amounts.user' }
+    });
+
+    const { transactionsToSettle } = Group.calculateBalances(populatedGroup.transactions);
+    group.balance = transactionsToSettle;
     await group.save();
 
     req.flash('success', 'Transazione creata con successo!');

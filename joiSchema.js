@@ -6,7 +6,9 @@ module.exports.groupSchema = Joi.object({
     image: Joi.string().uri().allow(null, '').default('/images/default_group.jpg'),
     participants: Joi.array().items(Joi.string().hex().length(24).required()).min(1).required(),
     transactions: Joi.array().items(Joi.string().hex().length(24)),
-    createdAt: Joi.date().default(Date.now)
+    balance: Joi.array().items(Joi.object({ from: Joi.string(), to: Joi.string(), amount: Joi.number() })),
+    createdAt: Joi.date().default(Date.now),
+    updatedAt: Joi.date().default(Date.now)
 }).required();
 
 module.exports.transactionSchema = Joi.object({

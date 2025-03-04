@@ -28,6 +28,7 @@
                     <div id="listParticipants">
                         <div class="input-group mb-2">
                             <select class="form-control" name="participants[]" id="participants[]" required>
+                                <option value=""></option>
                                 <% for(let u of users) { %>
                                     <option value="<%= u._id %>"><%= u.username %></option>
                                 <% } %>

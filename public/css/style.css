@@ -305,7 +305,6 @@ h1 {
   box-shadow: 0 8px 25px rgba(0, 0, 0, 0.4);
 }
 
-/* TODO in INDEX.EJS */
 .stats-badge {
   background: rgba(78, 84, 200, 0.3);
   color: var(--text);
@@ -587,4 +586,164 @@ footer {
   max-height: 100%;
   max-width: 100%;
   border-radius: 50%;
+}
+
+/* Group Header Styling */
+.text-center h2 {
+  background: linear-gradient(45deg, var(--primary), var(--accent));
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+/* Dashboard Cards */
+.card {
+  background-color: var(--card-bg);
+  border: none;
+  border-radius: 10px;
+  box-shadow: var(--shadow);
+  color: var(--text);
+}
+
+.card-body {
+  padding: 25px;
+}
+
+.bg-light {
+  background-color: rgba(255, 255, 255, 0.1) !important;
+  color: var(--text);
+}
+
+/* Transaction Timeline */
+.transaction-card {
+  background-color: var(--card-bg);
+  border: none;
+  border-radius: 10px;
+  margin-bottom: 20px;
+  transition: transform 0.3s ease;
+}
+
+.transaction-card:hover {
+  transform: translateY(-5px);
+}
+
+/* Buttons */
+.btn-primary {
+  background: linear-gradient(45deg, var(--primary), var(--primary-dark));
+  border: none;
+  transition: all 0.3s;
+}
+
+.btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+}
+
+/* Table Styling */
+.table {
+  color: var(--text);
+}
+
+.table-primary {
+  background-color: var(--primary) !important;
+}
+
+.table-bordered {
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+/* Icons */
+.bi {
+  color: var(--accent);
+}
+
+/* Responsive Adjustments */
+@media (max-width: 768px) {
+  .container {
+    padding: 10px;
+  }
+}
+
+/* Animations */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.transaction-card {
+  animation: fadeIn 0.5s forwards;
+  opacity: 0;
+}
+
+.debts-matrix {
+  background-color: var(--card-bg);
+  border-radius: 12px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+}
+
+.debt-flow-container {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.debt-flow-item {
+  display: flex;
+  align-items: center;
+  background-color: rgba(255, 255, 255, 0.05);
+  border-radius: 10px;
+  padding: 12px;
+  transition: background-color 0.3s ease;
+}
+
+.debt-flow-item:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+.debt-flow-sender, 
+.debt-flow-receiver {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.debt-avatar {
+  width: 35px;
+  height: 35px;
+  border-radius: 50%;
+  background-color: var(--primary);
+  color: white;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-weight: bold;
+}
+
+.debt-arrow {
+  margin: 0 15px;
+  color: var(--accent);
+}
+
+.debt-amount {
+  margin-left: auto;
+}
+
+.empty-debts-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  text-align: center;
+  color: #4cd964;
+}
+
+.empty-debts-state i {
+  font-size: 3rem;
 }
