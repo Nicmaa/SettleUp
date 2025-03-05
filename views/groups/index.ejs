@@ -32,23 +32,10 @@
                   </div>
                   
                   <div class="mb-3">
-                    <% 
-                    let userTransactions = group.balance.filter(entry => 
-                        entry.from === currentUser.username || entry.to === currentUser.username
-                    );
-                    
-                    let totalAmount = userTransactions.reduce((sum, entry) => {
-                        if (entry.from === currentUser.username) {
-                            return sum - parseFloat(entry.amount);
-                        } else if (entry.to === currentUser.username) {
-                            return sum + parseFloat(entry.amount);
-                        }
-                        return sum;
-                    }, 0);
-                    %>
+                    <% let userBalance = group.currentUserBalance(currentUser); %>
                     <h5>Il tuo saldo</h5>
-                    <h4 class="<%= totalAmount >= 0 ? 'balance-positive' : 'balance-negative' %>">
-                        <%= totalAmount >= 0 ? '+' : '-' %> <%= Math.abs(totalAmount).toFixed(2) %> €
+                    <h4 class="<%= userBalance >= 0 ? 'balance-positive' : 'balance-negative' %>">
+                        <%= userBalance >= 0 ? '+' : '-' %> <%= Math.abs(userBalance).toFixed(2) %> €
                     </h4>
                 </div>
                   <div class="member-avatars">

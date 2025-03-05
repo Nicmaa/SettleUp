@@ -57,7 +57,7 @@ module.exports.isGroupOwner = async (req, res, next) => {
     next();
 };
 
-// Check if user created the transaction or is group owner
+// Check if user created the transaction or is group owner //TODOOOOO
 module.exports.isTransactionCreator = async (req, res, next) => {
     const { id } = req.params;
     const transaction = await Transaction.findById(id).populate('group');
@@ -69,10 +69,7 @@ module.exports.isTransactionCreator = async (req, res, next) => {
     
     const group = await Group.findById(transaction.group._id);
     
-    if (
-        !transaction.paidBy.equals(req.user._id) && 
-        !group.owner.equals(req.user._id)
-    ) {
+    if (!transaction.paidBy.equals(req.user._id)) {
         req.flash('error', 'You do not have permission to modify this transaction');
         return res.redirect(`/api/groups/${transaction.group._id}`);
     }

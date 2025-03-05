@@ -44,65 +44,50 @@ groupSchema.virtual('totalSpent').get(function () {
     return this.transactions.reduce((sum, transaction) => sum + transaction.amounts.reduce((s, p) => s + p.amount, 0), 0);
 });
 
-groupSchema.methods.addParticipant = function (userId) {
-    if (!this.participants.includes(userId)) {
-        this.participants.push(userId);
-    }
-    return this;
-};
+groupSchema.methods.currentUserBalance = function (currentUser) {
+    let userTransactions = this.balance.filter(entry => 
+        entry.from === currentUser.username || entry.to === currentUser.username
+    );
+    
+    let totalAmount = userTransactions.reduce((sum, entry) => {
+        if (entry.from === currentUser.username) {
+            return sum - parseFloat(entry.amount);
+        } else if (entry.to === currentUser.username) {
+            return sum + parseFloat(entry.amount);
+        }
+        return sum;
+    }, 0);
 
-groupSchema.methods.removeParticipant = function (userId) {
-    this.participants = this.participants.filter(id => id.toString() !== userId.toString());
-    return this;
+    return totalAmount;
 };
 
 groupSchema.statics.calculateBalances = function (transactions) {
-
     if (!transactions || !Array.isArray(transactions)) {
-        console.error('Transactions is not a valid array');
         return { transactionsToSettle: [] };
     }
 
-    transactions = transactions.map(t => {
-        if (t.populated && typeof t.populated === 'function') {
-            return t;
-        }
-        return t.populate ? t.populate('amounts.user') : t;
-    });
-
-    transactions = transactions.filter(t => {
-        const hasValidAmounts = t.amounts && 
-            Array.isArray(t.amounts) && 
-            t.amounts.length > 0 && 
-            t.amounts.every(a => a.user && a.amount !== undefined);
-        
-        if (!hasValidAmounts) {
-            console.warn('Transaction missing valid amounts:', t);
-        }
-        return hasValidAmounts;
-    });
+    transactions = transactions.filter(t => 
+        t.amounts && 
+        Array.isArray(t.amounts) && 
+        t.amounts.length > 0 && 
+        t.amounts.every(a => a.user && a.amount !== undefined)
+    );
 
     if (transactions.length === 0) {
-        console.error('No valid transactions found');
         return { transactionsToSettle: [] };
     }
 
     let balances = transactions.reduce((acc, t) => {
         t.amounts.forEach(({ user, amount }) => {
-            // Ensure we have a valid user ID
             const userId = user._id ? user._id.toString() : user.toString();
             acc[userId] = (acc[userId] || 0) + amount;
         });
         return acc;
     }, {});
 
-    if (Object.keys(balances).length === 0) {
-        console.error('No balances calculated');
-        return { transactionsToSettle: [] };
-    }
-
-    let total = Object.values(balances).reduce((sum, amount) => sum + amount, 0);
-    let perPerson = total / Object.keys(balances).length;
+    const total = Object.values(balances).reduce((sum, amount) => sum + amount, 0);
+    const userCount = Object.keys(balances).length;
+    const perPerson = total / userCount;
 
     let debts = Object.entries(balances).map(([userId, amount]) => {
         let userObj = transactions
@@ -129,10 +114,10 @@ groupSchema.statics.calculateBalances = function (transactions) {
         let creditor = creditors[j];
         let amountToPay = Math.min(-debtor.balance, creditor.balance);
 
-        transactionsToSettle.push({ 
-            from: debtor.user.username || debtor.user._id.toString(), 
-            to: creditor.user.username || creditor.user._id.toString(), 
-            amount: amountToPay.toFixed(2) 
+        transactionsToSettle.push({
+            from: debtor.user.username || debtor.user._id.toString(),
+            to: creditor.user.username || creditor.user._id.toString(),
+            amount: amountToPay.toFixed(2)
         });
 
         debtor.balance += amountToPay;
@@ -143,6 +128,6 @@ groupSchema.statics.calculateBalances = function (transactions) {
     }
 
     return { transactionsToSettle };
-};
+}
 
 module.exports = mongoose.model('Group', groupSchema);

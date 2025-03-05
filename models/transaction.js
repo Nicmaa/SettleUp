@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+const Group = require('./Group');
 const Schema = mongoose.Schema;
 
 const transactionSchema = new Schema({
@@ -23,5 +24,16 @@ const transactionSchema = new Schema({
 transactionSchema.virtual('formattedDate').get(function () {
     return this.createdAt.toLocaleDateString();
 });
+
+transactionSchema.statics.refreshBalance = async function (id) {
+    const group = await Group.findById(id).populate({
+        path: 'transactions',
+        populate: { path: 'amounts.user' }
+    });
+
+    const { transactionsToSettle } = Group.calculateBalances(group.transactions);
+    group.balance = transactionsToSettle;
+    await group.save();
+};
 
 module.exports = mongoose.model('Transaction', transactionSchema);

@@ -65,22 +65,18 @@ router.post('/new/:id', isLoggedIn, isGroupOwnerOrParticipant, validateTransacti
     await newTransaction.save();
 
     group.transactions.push(newTransaction._id);
-    const populatedGroup = await Group.findById(group._id).populate({
-        path: 'transactions',
-        populate: { path: 'amounts.user' }
-    });
-
-    const { transactionsToSettle } = Group.calculateBalances(populatedGroup.transactions);
-    group.balance = transactionsToSettle;
     await group.save();
+    Transaction.refreshBalance(group._id);
 
     req.flash('success', 'Transazione creata con successo!');
     res.redirect(`/api/groups/${group._id}`);
 }));
 
 // Form per modificare una transazione
-router.get('/:transId/edit', isLoggedIn, isTransactionCreator, catchAsync(async (req, res) => {
-    const transaction = await Transaction.findById(req.params.transId).populate('group');
+router.get('/:id/edit', isLoggedIn, catchAsync(async (req, res) => {
+    const transaction = await Transaction.findById(req.params.id)
+    .populate('group')
+    .populate('amounts.user');
     if (!transaction) throw new ExpressError("Transazione non trovata!", 404);
     const group = await Group.findById(transaction.group._id)
         .populate('participants', 'username');
@@ -89,8 +85,8 @@ router.get('/:transId/edit', isLoggedIn, isTransactionCreator, catchAsync(async 
 }));
 
 // Modifica una transazione
-router.patch('/:transId', isLoggedIn, isTransactionCreator, validateTransaction, catchAsync(async (req, res) => {
-    const transaction = await Transaction.findById(req.params.transId);
+router.patch('/:id', isLoggedIn, validateTransaction, catchAsync(async (req, res) => {
+    const transaction = await Transaction.findById(req.params.id);
     if (!transaction) throw new ExpressError("Transazione non trovata!", 404);
     if (!req.body.amounts || !req.body.amounts.some(a => a.amount > 0)) {
         throw new ExpressError("Almeno un importo deve essere maggiore di 0", 400);
@@ -101,20 +97,24 @@ router.patch('/:transId', isLoggedIn, isTransactionCreator, validateTransaction,
     transaction.category = req.body.categories;
     await transaction.save();
 
+    Transaction.refreshBalance(transaction.group);
+    
     req.flash('success', 'Transazione modificata con successo!');
     res.redirect(`/api/groups/${transaction.group}`);
 }));
 
 // Elimina una transazione
-router.delete('/:transId', isLoggedIn, isTransactionCreator, catchAsync(async (req, res) => {
-    const transaction = await Transaction.findById(req.params.transId);
+router.delete('/:id', isLoggedIn, catchAsync(async (req, res) => {
+    const transaction = await Transaction.findById(req.params.id);
     if (!transaction) throw new ExpressError("Transazione non trovata!", 404);
 
     await Group.findByIdAndUpdate(transaction.group, {
         $pull: { transactions: transaction._id }
     });
 
-    await Transaction.findByIdAndDelete(req.params.transId);
+    await Transaction.findByIdAndDelete(req.params.id);
+
+    Transaction.refreshBalance(transaction.group);
 
     req.flash('success', 'Transazione eliminata con successo!');
     res.redirect(`/api/groups/${transaction.group}`);

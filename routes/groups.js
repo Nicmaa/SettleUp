@@ -106,8 +106,16 @@ router.put('/:id', isLoggedIn, isGroupOwner, validateGroup, catchAsync(async (re
         return res.redirect(`/api/groups/${req.params.id}/edit`);
     }
 
+    //Controllo che creatore sia nei partecipanti
     if (!req.body.participants.includes(req.user._id.toString())) {
         req.body.participants.push(req.user._id);
+    }
+
+    //Controllo duplicati
+    const participantsSet = new Set(req.body.participants);
+    if (participantsSet.size !== req.body.participants.length) {
+        req.flash('error', 'Hai inserito lo stesso partecipante più volte!');
+        return res.redirect('/api/groups/new');
     }
 
     const { name, image, description, participants } = req.body;
