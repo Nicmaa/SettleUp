@@ -7,7 +7,7 @@ const transactionSchema = new Schema({
     description: { type: String, trim: true, maxlength: [100, 'La descrizione deve avere meno di 100 caratteri'] },
     category: {
         type: String,
-        enum: ['Cibo', 'Trasporti', 'Svago', 'Vestiti', 'Lavoro', 'Altro'],
+        enum: ['Cibo', 'Trasporti', 'Svago', 'Vestiti', 'Lavoro', 'Casa', 'Salute', 'Altro'],
         default: 'Altro'
     },
     amounts: [
@@ -22,18 +22,30 @@ const transactionSchema = new Schema({
 });
 
 transactionSchema.virtual('formattedDate').get(function () {
-    return this.createdAt.toLocaleDateString();
+    const options = { day: '2-digit', month: '2-digit', year: 'numeric' };
+    return this.createdAt.toLocaleDateString('it-IT', options);
 });
 
-transactionSchema.statics.refreshBalance = async function (id) {
-    const group = await Group.findById(id).populate({
-        path: 'transactions',
-        populate: { path: 'amounts.user' }
-    });
-
-    const { transactionsToSettle } = Group.calculateBalances(group.transactions);
-    group.balance = transactionsToSettle;
-    await group.save();
+transactionSchema.statics.refreshBalance = async function (groupId) {
+    try {
+        const Group = mongoose.model('Group');
+        
+        const group = await Group.findById(groupId).populate({
+            path: 'transactions',
+            populate: { path: 'amounts.user' }
+        });
+        
+        if (!group) throw new ExpressError(`Gruppo con ID ${groupId} non trovato`,404);
+        
+        const { transactionsToSettle } = Group.calculateBalances(group.transactions);
+        group.balance = transactionsToSettle;
+        
+        await group.save();
+        return group;
+    } catch (error) {
+        console.error('Errore durante il refresh del bilancio:', error);
+        throw new ExpressError(`Errore nel refresh dei bilanci. Riprovare.`,error.status || 500);
+    }
 };
 
 module.exports = mongoose.model('Transaction', transactionSchema);

@@ -20,41 +20,50 @@ const validateGroup = (req, res, next) => {
     }
 };
 
+const validateParticipants = (participants, userId) => {
+    // Controllo numero minimo partecipanti
+    if (!participants || participants.length < 2) {
+        return { isValid: false, message: 'Devono essere presenti almeno 2 partecipanti!' };
+    }
+    
+    // Controllo presenza del proprietario nei partecipanti
+    const participantsArray = Array.isArray(participants) ? [...participants] : [participants];
+    const hasOwner = participantsArray.includes(userId.toString());
+    
+    // Controllo duplicati
+    const participantsSet = new Set(participantsArray);
+    if (participantsSet.size !== participantsArray.length) {
+        return { isValid: false, message: 'Hai inserito lo stesso partecipante più volte!' };
+    }
+    
+    return { 
+        isValid: true, 
+        participants: hasOwner ? participantsArray : [...participantsArray, userId.toString()]
+    };
+};
+
 //Tutti i gruppi dell'utente connesso
 router.get('/', isLoggedIn, catchAsync(async (req, res) => {
     const groups = await Group.find({ participants: req.user._id })
         .populate('participants', 'username avatar')
+        .populate('transactions')
         .sort({ updatedAt: -1 });
-
-    for (let group of groups) {
-        await group.populate('transactions');
-    }
 
     res.render('groups/index', { groups });
 }));
 
 //Form per creare un nuovo gruppo
 router.get('/new', isLoggedIn, catchAsync(async (req, res) => {
-    const users = await User.find({}).select('username _id');
+    const users = await User.find({}, 'username _id').sort('username');
     res.render('groups/new', { users });
 }));
 
 //Creazione nuovo gruppo
 router.post('/new', isLoggedIn, validateGroup, catchAsync(async (req, res) => {
-    if (!req.body.participants || req.body.participants.length < 2) {
-        req.flash('error', 'Devono essere presenti almeno 2 partecipanti!');
-        return res.redirect('/api/groups/new');
-    }
-
-    //Controllo che creatore sia nei partecipanti
-    if (!req.body.participants.includes(req.user._id.toString())) {
-        req.body.participants.push(req.user._id);
-    }
-
-    //Controllo duplicati
-    const participantsSet = new Set(req.body.participants);
-    if (participantsSet.size !== req.body.participants.length) {
-        req.flash('error', 'Hai inserito lo stesso partecipante più volte!');
+    
+    const validation = validateParticipants(req.body.participants, req.user._id);
+    if (!validation.isValid) {
+        req.flash('error', validation.message);
         return res.redirect('/api/groups/new');
     }
 
@@ -62,7 +71,7 @@ router.post('/new', isLoggedIn, validateGroup, catchAsync(async (req, res) => {
         name: req.body.name,
         image: req.body.image || undefined,
         description: req.body.description,
-        participants: req.body.participants,
+        participants: validation.participants,
         owner: req.user._id,
     });
 
@@ -81,7 +90,6 @@ router.get('/:id', isLoggedIn, isGroupOwnerOrParticipant, catchAsync(async (req,
             options: { sort: { createdAt: -1 } },
             populate: [
                 { path: 'amounts.user', select: 'username' },
-                { path: 'createdAt' }
             ]
         });
 
@@ -92,38 +100,37 @@ router.get('/:id', isLoggedIn, isGroupOwnerOrParticipant, catchAsync(async (req,
 
 // Form per modificare un gruppo
 router.get('/:id/edit', isLoggedIn, isGroupOwner, catchAsync(async (req, res) => {
-    const group = await Group.findById(req.params.id).populate('participants', 'username avatar');
+    const [group, users] = await Promise.all([
+        Group.findById(req.params.id).populate('participants', 'username avatar'),
+        User.find({}, 'username _id').sort('username')
+    ]);
+    
     if (!group) throw new ExpressError("Gruppo non trovato!", 404);
-
-    const users = await User.find({}).select('username _id');
     res.render('groups/edit', { group, users });
 }));
 
 // Modifica del gruppo
 router.put('/:id', isLoggedIn, isGroupOwner, validateGroup, catchAsync(async (req, res) => {
-    if (!req.body.participants || req.body.participants.length < 2) {
-        req.flash('error', 'Devono essere presenti almeno 2 partecipanti!');
+    
+    const validation = validateParticipants(req.body.participants, req.user._id);
+    if (!validation.isValid) {
+        req.flash('error', validation.message);
         return res.redirect(`/api/groups/${req.params.id}/edit`);
     }
 
-    //Controllo che creatore sia nei partecipanti
-    if (!req.body.participants.includes(req.user._id.toString())) {
-        req.body.participants.push(req.user._id);
-    }
-
-    //Controllo duplicati
-    const participantsSet = new Set(req.body.participants);
-    if (participantsSet.size !== req.body.participants.length) {
-        req.flash('error', 'Hai inserito lo stesso partecipante più volte!');
-        return res.redirect('/api/groups/new');
-    }
-
-    const { name, image, description, participants } = req.body;
+    const { name, image, description } = req.body;
     const group = await Group.findByIdAndUpdate(
         req.params.id,
-        { name, image, description, participants },
+        { 
+            name, 
+            image: image || undefined, 
+            description, 
+            participants: validation.participants,
+            updatedAt: Date.now() 
+        },
         { new: true, runValidators: true },
     );
+
     if (!group) throw new ExpressError("Gruppo non trovato!", 404);
 
     req.flash('success', 'Gruppo modificato con successo!');
@@ -133,10 +140,12 @@ router.put('/:id', isLoggedIn, isGroupOwner, validateGroup, catchAsync(async (re
 // Elimina un gruppo e tutte le sue transazioni
 router.delete('/:id', isLoggedIn, isGroupOwner, catchAsync(async (req, res) => {
     const group = await Group.findById(req.params.id);
-    if (!group) throw new ExpressError("Group not found", 404);
+    if (!group) throw new ExpressError("Gruppo non trovato!", 404);
 
-    await Transaction.deleteMany({ group: group._id });
-    await Group.findByIdAndDelete(req.params.id);
+    await Promise.all([
+        Transaction.deleteMany({ group: group._id }),
+        Group.findByIdAndDelete(req.params.id)
+    ]);
 
     req.flash('success', 'Gruppo eliminato con successo!');
     res.redirect('/api/groups');

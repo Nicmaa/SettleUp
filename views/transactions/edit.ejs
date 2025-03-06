@@ -9,8 +9,8 @@
                     <textarea class="form-control" id="description" name="description"><%= transaction.description %></textarea>
                 </div>
                 <div class="mb-3">
-                    <label for="categories" class="form-label">Categoria</label>
-                    <select class="form-control" id="categories" name="categories">
+                    <label for="category" class="form-label">Categoria</label>
+                    <select class="form-control" id="category" name="category">
                         <% for(cat of categories) { %>
                             <option value="<%= cat %>"><%= cat %></option>
                         <% } %>

@@ -45,11 +45,11 @@ groupSchema.virtual('totalSpent').get(function () {
 });
 
 groupSchema.methods.currentUserBalance = function (currentUser) {
-    let userTransactions = this.balance.filter(entry => 
+    const userTransactions = this.balance.filter(entry => 
         entry.from === currentUser.username || entry.to === currentUser.username
     );
     
-    let totalAmount = userTransactions.reduce((sum, entry) => {
+    const totalAmount = userTransactions.reduce((sum, entry) => {
         if (entry.from === currentUser.username) {
             return sum - parseFloat(entry.amount);
         } else if (entry.to === currentUser.username) {
@@ -58,7 +58,7 @@ groupSchema.methods.currentUserBalance = function (currentUser) {
         return sum;
     }, 0);
 
-    return totalAmount;
+    return parseFloat(totalAmount.toFixed(2));
 };
 
 groupSchema.statics.calculateBalances = function (transactions) {

@@ -27,7 +27,7 @@
                     <div id="listParticipants">
                         <% group.participants.forEach((p, index)=> { %>
                             <div class="input-group mb-2">
-                                <input type="text" name="participants[]" class="form-control" value="<%= p %>"
+                                <input type="text" name="participants[]" class="form-control" value="<%= p.username %>"
                                     required>
                                 <button type="button" class="btn btn-outline-danger removeParticipant">X</button>
                                 <div class="valid-feedback">
