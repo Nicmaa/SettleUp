@@ -52,8 +52,8 @@
                     <% } %>
                   </div>
                   <div class="d-flex justify-content-between mt-4">
-                    <a href="/api/groups/<%= group._id %>" class="btn btn-sm btn-outline-light">Visualizza</a>
-                    <a href="/api/transactions/new/<%= group._id %>" class="btn btn-sm btn-outline-warning">Aggiungi spesa</a>
+                    <a href="/groups/<%= group._id %>" class="btn btn-sm btn-outline-light">Visualizza</a>
+                    <a href="/transactions/new/<%= group._id %>" class="btn btn-sm btn-outline-warning">Aggiungi spesa</a>
                   </div>
                 </div>
               </div>
@@ -68,7 +68,7 @@
           <h3>Nessun gruppo ancora!</h3>
           <p class="mb-4">Crea il tuo primo gruppo per iniziare a dividere le spese con amici, famiglia o coinquilini.</p>
           <button class="btn btn-add-group" data-bs-toggle="modal" data-bs-target="#createGroupModal">
-            <a href="/api/groups/new"><i class="bi bi-plus-circle me-2"></i> Crea il tuo primo gruppo</a>
+            <a href="/groups/new"><i class="bi bi-plus-circle me-2"></i> Crea il tuo primo gruppo</a>
           </button>
         </div>
       <% } %>
@@ -78,7 +78,7 @@
   <!-- Floating action button (visible only when groups exist) -->
   <% if (groups && groups.length > 0) { %>
     <div class="floating-btn" data-bs-toggle="modal" data-bs-target="#createGroupModal">
-      <a href="/api/groups/new"><i class="bi bi-plus-lg"></i></a>
+      <a href="/groups/new"><i class="bi bi-plus-lg"></i></a>
     </div>
   <% } %>
 

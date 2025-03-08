@@ -1,15 +1,8 @@
 const express = require('express');
-const methodOverride = require('method-override');
-const engine = require('ejs-mate');
-const path = require('path');
-const session = require('express-session');
-const flash = require('connect-flash');
-const passport = require('passport');
-const LocalStrategy = require('passport-local');
+const ExpressError = require('./utilities/expressError');
 
 const connectDB = require('./config/db');
-const ExpressError = require('./utilities/expressError');
-const User = require('./models/User');
+const configureMiddleware = require('./config/middleware');
 
 const groupRoutes = require('./routes/groups');
 const transactionRoutes = require('./routes/transactions');
@@ -17,42 +10,12 @@ const userRoutes = require('./routes/users');
 
 const app = express();
 connectDB();
-
-app.engine('ejs', engine);
-app.set('view engine', 'ejs');
-app.set('views', path.join(__dirname, 'views'));
-app.use(express.urlencoded({ extended: true }));
-app.use(methodOverride('_method'));
-app.use(express.static(path.join(__dirname, 'public')));
-const sessionConfig = {
-    secret: 'segreto temporaneo',
-    resave: false,
-    saveUninitialized: true,
-    cookie: {
-        httpOnly: true, //Per questioni di sicurezza
-        expires: Date.now() + 1000 * 60 * 60 * 24 * 7, //Voglio che scada dopo una settimana (esprimo il tempo in millisecondi)
-        maxAge: 1000 * 60 * 60 * 24 * 7,
-    }
-}
-app.use(session(sessionConfig));
-app.use(passport.initialize());
-app.use(passport.session());
-app.use(flash());
-app.use((req, res, next) => {
-    res.locals.currentUser = req.user;
-    res.locals.success = req.flash('success');
-    res.locals.error = req.flash('error');
-    next();
-});
-
-passport.use(new LocalStrategy(User.authenticate()));
-passport.serializeUser(User.serializeUser());
-passport.deserializeUser(User.deserializeUser());
+configureMiddleware(app);
 
 //Router
-app.use('/api/users', userRoutes);
-app.use('/api/groups', groupRoutes);
-app.use('/api/transactions', transactionRoutes);
+app.use('/users', userRoutes);
+app.use('/groups', groupRoutes);
+app.use('/transactions', transactionRoutes);
 
 app.get('/', (req,res)=> {
     res.render('home');

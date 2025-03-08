@@ -3,7 +3,7 @@
     <div class="row">
         <div class="col-md-6 offset-md-3 my-5">
             <h3 class="text-center">Modifica il gruppo</h3>
-            <form action="/api/groups/<%= group._id %>?_method=PUT" method="POST" novalidate class="validated-form">
+            <form action="/groups/<%= group._id %>?_method=PUT" method="POST" novalidate class="validated-form">
                 <div class="form-group mb-3">
                     <label for="name">Titolo</label>
                     <input type="text" class="form-control" id="name" name="name" value="<%= group.name %>" required>

@@ -19,7 +19,7 @@
                 <div class="card-body">
                     <div class="d-flex justify-content-between align-items-center mb-4">
                         <h4 class="card-title m-0">Dashboard Overview</h4>
-                        <a href="/api/transactions/new/<%= group._id %>" class="btn btn-primary">
+                        <a href="/transactions/new/<%= group._id %>" class="btn btn-primary">
                             <i class="bi bi-plus-circle me-2"></i>Nuova Transazione
                         </a>
                     </div>
@@ -122,11 +122,11 @@
                                     <i class="bi bi-three-dots-vertical"></i>
                                 </button>
                                 <ul class="dropdown-menu dropdown-menu-end">
-                                    <li><a class="dropdown-item" href="/api/transactions/<%= t._id %>/edit">
+                                    <li><a class="dropdown-item" href="/transactions/<%= t._id %>/edit">
                                         <i class="bi bi-pencil me-2"></i>Modifica
                                     </a></li>
                                     <li>
-                                        <form action="/api/transactions/<%=t._id%>?_method=DELETE" method="post">
+                                        <form action="/transactions/<%=t._id%>?_method=DELETE" method="post">
                                             <button 
                                                 class="dropdown-item text-danger"
                                                 type="submit"

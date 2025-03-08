@@ -1,5 +1,7 @@
 const Group = require('./models/Group');
 const catchAsync = require('./utilities/catchAsync');
+const ExpressError = require('./utilities/expressError');
+const { groupSchema, transactionSchema } = require('./joiSchema.js');
 
 // Middleware per controllare se l'utente è autenticato
 module.exports.isLoggedIn = (req, res, next) => {
@@ -26,7 +28,7 @@ module.exports.isGroupOwnerOrParticipant = catchAsync(async (req, res, next) => 
 
     if (!group) {
         req.flash('error', 'Gruppo non trovato!');
-        return res.redirect('/api/groups');
+        return res.redirect('/groups');
     }
 
     if (
@@ -34,7 +36,7 @@ module.exports.isGroupOwnerOrParticipant = catchAsync(async (req, res, next) => 
         !group.participants.some(participant => participant.equals(req.user._id))
     ) {
         req.flash('error', 'Non hai i permessi per vedere questo gruppo!');
-        return res.redirect('/api/groups');
+        return res.redirect('/groups');
     }
 
     req.group = group;
@@ -47,12 +49,12 @@ module.exports.isGroupOwner = catchAsync(async (req, res, next) => {
 
     if (!group) {
         req.flash('error', 'Gruppo non trovato!');
-        return res.redirect('/api/groups');
+        return res.redirect('/groups');
     }
 
     if (!group.owner.equals(req.user._id)) {
         req.flash('error', 'Non hai i permessi per modificare questo gruppo!');
-        return res.redirect(`/api/groups/${req.params.id}`);
+        return res.redirect(`/groups/${req.params.id}`);
     }
 
     if (!req.group) req.group = group;
@@ -83,4 +85,60 @@ module.exports.validatePasswordStrength = (req, res, next) => {
     }
 
     next();
+};
+
+module.exports.validateParticipants = (participants, userId) => {
+    // Controllo numero minimo partecipanti
+    if (!participants || participants.length < 2) {
+        return { isValid: false, message: 'Devono essere presenti almeno 2 partecipanti!' };
+    }
+    
+    // Controllo presenza del proprietario nei partecipanti
+    const participantsArray = Array.isArray(participants) ? [...participants] : [participants];
+    const hasOwner = participantsArray.includes(userId.toString());
+    
+    // Controllo duplicati
+    const participantsSet = new Set(participantsArray);
+    if (participantsSet.size !== participantsArray.length) {
+        return { isValid: false, message: 'Hai inserito lo stesso partecipante più volte!' };
+    }
+    
+    return { 
+        isValid: true, 
+        participants: hasOwner ? participantsArray : [...participantsArray, userId.toString()]
+    };
+};
+
+module.exports.validateGroup = (req, res, next) => {
+    const { error } = groupSchema.validate(req.body);
+    if (error) {
+        const msg = error.details.map(el => el.message).join(',');
+        throw new ExpressError(msg, 400);
+    } else {
+        next();
+    }
+};
+
+module.exports.validateTransaction = (req, res, next) => {
+    if (!req.body.user || !req.body.amount) {
+        throw new ExpressError("Dati della transazione mancanti", 400);
+    }
+
+    const transformedData = {
+        description: req.body.description || '',
+        category: req.body.category || 'Altro',
+        amounts: req.body.user.map((user, index) => ({
+            user,
+            amount: parseFloat(req.body.amount[index]) || 0
+        }))
+    };
+
+    const { error } = transactionSchema.validate(transformedData);
+    if (error) {
+        const msg = error.details.map(el => el.message).join(',');
+        throw new ExpressError(msg, 400);
+    } else {
+        req.body = transformedData;
+        next();
+    }
 };
