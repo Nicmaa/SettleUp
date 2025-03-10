@@ -1,118 +1,98 @@
-# 📌 Settle Up  
-Gestisci e dividi le spese tra amici in modo semplice e organizzato.   
+# 📌 Settle Up
 
-![Screenshot della web app](public/images/screen-readme.png)
+Manage and split expenses with friends in a simple and organized way.
 
----
+![Web app screenshot](src/public/images/screen-readme.png)
 
-## 🚀 Tecnologie utilizzate  
-- **Backend**: Node.js, Express.js  
-- **Database**: MongoDB (Mongoose)  
-- **Frontend**: EJS, Bootstrap  
-- **Autenticazione**: Passport.js  
-- **Validazione**: Joi  
-- **Middleware**: Express Middleware  
+## 🚀 Technologies Used
 
----
+- **Backend**: Node.js, Express.js
+- **Database**: MongoDB (Mongoose)
+- **Frontend**: EJS, Bootstrap
+- **Authentication**: Passport.js
+- **Validation**: Joi
+- **Middleware**: Express Middleware
 
-## ⚙️ Requisiti  
+## ⚙️ Requirements
 
-Prima di procedere, assicurati di avere:  
+Before proceeding, make sure you have:
 
-- **Node.js** (versione più recente consigliata)  
-- **MongoDB** installato e in esecuzione  
+- **Node.js** (latest version recommended)
+- **MongoDB** installed and running
 
----
-
-## 📂 Struttura del progetto  
+## 📂 Project Structure
 
 ```
-settle-up/
+SettleUp/src
 │
-├── config/               # Configurazioni varie (es. database)
-├── controllers/          # Logica delle route
-├── models/               # Schemi Mongoose
-├── public/               # File statici (CSS, JS, immagini)
-│   ├── stylesheets/      # Stili CSS
-│   ├── javascript/       # Script frontend
-│   └── images/           # Immagini
-├── routes/               # Definizione delle API e delle pagine
-├── views/                # Template EJS
-│   ├── user/             # Pagine utente
-│   ├── group/            # Pagine gruppo
-│   ├── transaction/      # Pagine transazioni
+├── config/               # Various configurations (e.g., database)
+├── controllers/          # Route logic
+├── models/               # Mongoose schemas
+├── public/               # Static files (CSS, JS, images)
+│   ├── stylesheets/      # CSS styles
+│   ├── javascript/       # Frontend scripts
+│   └── images/           # Images
+├── routes/               # API and page definitions
+├── views/                # EJS templates
+│   ├── user/             # User pages
+│   ├── group/            # Group pages
+│   ├── transaction/      # Transaction pages
 │   ├── home.ejs          # Homepage
-│   └── error.ejs         # Pagina errori
-├── index.js              # Entry point dell'app
-├── joiSchema.js          # Validazione con Joi
-├── middleware.js         # Middleware personalizzati
-└── README.md             # Documentazione
+│   └── error.ejs         # Error pages
+├── index.js              # App entry point
+├── joiSchema.js          # Joi validation
+├── middleware.js         # Custom middleware
 ```
 
----
+## 🔧 Setup and Installation
 
-## ⚙️ Setup e Installazione
-
-1. **Clona il repository:**
-
+1. **Clone the repository:**
    ```bash
    git clone https://github.com/Nicmaa/SettleUp.git
    cd SettleUp
    ```
 
-2. **Installa le dipendenze:**
-
+2. **Install dependencies:**
    ```bash
    npm install
    ```
 
-3. **Avvia il server:**
-
+3. **Start the server:**
    ```bash
    npm start
    ```
 
-5. **Apri il browser su:**
-   
+4. **Open your browser at:**
    [http://localhost:3000](http://localhost:3000)
-   
----
 
-## 🤝 Contributi  
+## 🤝 Contributions
 
-Se vuoi contribuire al progetto:  
+If you want to contribute to the project:
 
-1. Fai un fork del repository  
-2. Crea un nuovo branch: `git checkout -b feature-nuova-funzionalità`  
-3. Fai le modifiche e committale: `git commit -m "Aggiunta nuova funzionalità"`  
-4. Fai un push: `git push origin feature-nuova-funzionalità`  
-5. Apri una pull request  
+1. Fork the repository
+2. Create a new branch: `git checkout -b feature-new-functionality`
+3. Make changes and commit them: `git commit -m "Added new functionality"`
+4. Push: `git push origin feature-new-functionality`
+5. Open a pull request
 
----
+## 🔥 Key Features
 
-## 🔥 Funzionalità principali  
-
-✅ **Gestione Gruppi** - Crea gruppi di spesa con amici  
-✅ **Aggiunta Transazioni** - Registra chi ha pagato cosa  
-✅ **Calcolo Automatico** - Determina i debiti tra utenti  
-✅ **Autenticazione** - Login e gestione utenti  
-
----
+✅ **Group Management** - Create expense groups with friends  
+✅ **Add Transactions** - Record who paid for what  
+✅ **Automatic Calculation** - Determine debts between users  
+✅ **Authentication** - Login and user management
 
 ## 📌 To-Do List
 
-- [ ] Migliorare tabella debiti (responsive)
-- [ ] Styling delle pagine di dettaglio (show page)
-- [ ] Creare una pagina profilo per gli utenti
-- [ ] Implementare notifiche (email e in-app)
-- [ ] Consentire la creazione di gruppi senza altri utenti registrati
-- [ ] Aggiungere più opzioni di pagamento
+- [ ] Improve debt table (make responsive)
+- [ ] Style detail pages (show pages)
+- [ ] Create user profile page
+- [ ] Implement notifications (email and in-app)
+- [ ] Allow creating groups without other registered users
+- [ ] Add more payment options
 
----
+## 👤 Author
 
-## 👤 Autore
-
-</p>
 <h3 align="center">Nicolas Maule</h3>
 <p align="center">
   <a href="https://linkedin.com/in/nicolas-maule">
@@ -120,8 +100,6 @@ Se vuoi contribuire al progetto:
   </a>
 </p>
 
----
+## 📄 License
 
-## 📄 Licenza
-
-Questo progetto è sotto licenza MIT - vedi il file [LICENSE](LICENSE) per i dettagli.
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
