@@ -1,2 +1,22 @@
 <% layout('./layouts/layout') -%>
 
+<div class="container profile-container m-auto">
+    <div class="profile-header mb-3">
+        <div class="row align-items-center">
+            <div class="col-md-4 text-center">
+                <img src="<%= user.avatar %>" alt="Profile Picture" class="profile-avatar">
+            </div>
+            <div class="col-md-8">
+                <h1><%= user.fullName %></h1>
+                <p>@<%= user.username %></p>
+                <div class="profile-bio">
+                    <p>Bio:</p>
+                    <p><%= user.bio || "Ancora nessuna bio!" %></p>
+                </div>   
+                <div>
+                    <button class="btn btn-add-group"><a href="/users/profile/edit">Modifica profilo</a></button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
