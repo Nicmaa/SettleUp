@@ -1,0 +1,59 @@
+<% layout('./layouts/layout') -%>
+
+<div class="container profile-container m-auto my-5">
+    <div class="profile-header mb-4">
+        <h1 class="edit-title mb-4">Modifica Profilo</h1>
+        
+        <form action="/users/profile?_method=PUT" method="POST" novalidate class="validated-form">
+            <div class="row">
+                <div class="col-md-4 mb-4">
+                    <div class="text-center">
+                        <div class="avatar-upload-container">
+                            <img src="<%= user.avatar %>" alt="Profile Picture" class="profile-avatar mb-3">
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-md-8">
+                    <div class="edit-form">
+                        <div class="mb-3">
+                            <div class="row">
+                                <div class="col">
+                                    <label for="firstName" class="form-label">Nome</label>
+                                    <input type="text" class="form-control" id="firstName" name="firstName" value="<%= user.firstName || "" %>">
+                                </div>
+                                <div class="col">
+                                    <label for="lastName" class="form-label">Cognome</label>
+                                    <input type="text" class="form-control" id="lastName" name="lastName" value="<%= user.lastName %>">
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="username" class="form-label">Username</label>
+                            <div class="input-group">
+                                <span class="input-group-text">@</span>
+                                <input type="text" class="form-control" id="username" name="username" value="<%= user.username %>">
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="bio" class="form-label">Bio</label>
+                            <textarea class="form-control" id="bio" name="bio" rows="4"><%= user.bio || "" %></textarea>
+                            <div>Racconta qualcosa di te in massimo 150 caratteri</div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="email" class="form-label">Email</label>
+                            <input type="email" class="form-control" id="email" name="email" value="<%= user.email || "" %>">
+                        </div>
+                        
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-save me-2"></i>Salva modifiche
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>

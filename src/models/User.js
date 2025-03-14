@@ -21,6 +21,10 @@ const userSchema = new Schema({
     trim: true,
     maxlength: [50, 'Il cognome deve avere meno di 50 caratteri']
   },
+  bio: {
+    type: String,
+    maxlength: [150, 'La bio deve avere meno di 150 caratteri']
+  },
   avatar: { type: String, default: '/images/default_avatar.jpg' },
   createdAt: { type: Date, default: Date.now },
   updatedAt: { type: Date, default: Date.now },

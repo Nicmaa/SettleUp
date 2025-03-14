@@ -44,13 +44,16 @@ module.exports.renderEditProfile = async (req, res) => {
 };
 
 module.exports.editProfile = async (req, res) => {
-    const { email, avatar } = req.body;
-    
+    const { email, avatar, bio, firstName, lastName } = req.body;
+
     await User.findByIdAndUpdate(req.user._id, {
         email,
-        avatar
+        avatar,
+        bio,
+        firstName,
+        lastName,
     }, { runValidators: true });
-    
+
     req.flash('success', 'Profilo modificato correttamente!');
     res.redirect('/users/profile');
 };
