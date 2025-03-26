@@ -52,8 +52,9 @@ module.exports.showGroup = async (req, res) => {
         });
 
     if (!group) throw new ExpressError("Gruppo non trovato!", 404);
-
-    res.render('groups/show', { group });
+    const topSpender = await group.topSpender();
+    
+    res.render('groups/show', { group, topSpender });
 };
 
 module.exports.renderEditForm = async (req, res) => {

@@ -170,7 +170,7 @@ h1 {
 }
 
 .page-title h1 {
-  font-size: 2.5rem;
+  font-size: 3rem;
   background: linear-gradient(45deg, var(--primary), var(--accent));
   -webkit-background-clip: text;
   background-clip: text;
@@ -820,4 +820,117 @@ footer {
 .profile-bio p:last-child {
   margin-bottom: 0;
   line-height: 1.6;
+}
+
+/* SHOW GROUP */
+.group-header {
+  position: relative;
+}
+
+.group-header-actions {
+  position: absolute;
+  top: 0;
+  right: 0;
+  margin-top: -10px;
+  margin-right: 0;
+}
+
+@media (max-width: 768px) {
+  .group-header-actions {
+      position: static;
+      display: flex;
+      justify-content: center;
+      margin-bottom: 15px;
+  }
+}
+.dashboard-overview {
+  background: var(--card-bg);
+  border-radius: 12px;
+  overflow: hidden;
+  transition: transform 0.3s ease;
+}
+
+.stat-card {
+  background: rgba(78, 84, 200, 0.2);
+  border-radius: 10px;
+  padding: 20px;
+  transition: all 0.3s ease;
+}
+
+.stat-card:hover {
+  background: rgba(78, 84, 200, 0.3);
+  transform: translateY(-2px);
+}
+
+.transaction-timeline {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.transaction-card {
+  background: var(--card-bg);
+  border-radius: 10px;
+  padding: 20px;
+  transition: all 0.3s ease;
+}
+
+.transaction-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 15px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  padding-bottom: 10px;
+}
+
+.transaction-date {
+  display: flex;
+  align-items: center;
+  color: var(--text);
+}
+
+.transaction-date i {
+  margin-right: 10px;
+  color: var(--accent);
+}
+
+.transaction-amounts {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 10px;
+}
+
+.transaction-amount-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: rgba(255, 255, 255, 0.05);
+  padding: 10px;
+  border-radius: 8px;
+}
+
+.transaction-amount-item span:first-child {
+  color: var(--text);
+  font-weight: 500;
+}
+
+.transaction-amount-item .badge {
+  background-color: var(--primary);
+  color: white;
+}
+
+@keyframes slideIn {
+  from {
+      opacity: 0;
+      transform: translateY(20px);
+  }
+  to {
+      opacity: 1;
+      transform: translateY(0);
+  }
+}
+
+.animate-slide-in {
+  animation: slideIn 0.5s ease forwards;
 }

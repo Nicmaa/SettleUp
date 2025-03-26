@@ -130,4 +130,37 @@ groupSchema.statics.calculateBalances = function (transactions) {
     return { transactionsToSettle };
 }
 
+groupSchema.methods.topSpender = async function () {
+    if (!this.transactions || this.transactions.length === 0) {
+        return null;
+    }
+
+    const transactions = await mongoose.model('Transaction').find({ _id: { $in: this.transactions } });
+
+    let spending = {};
+
+    transactions.forEach(transaction => {
+        transaction.amounts.forEach(({ user, amount }) => {
+            const userId = user.toString();
+            spending[userId] = (spending[userId] || 0) + amount;
+        });
+    });
+
+    if (Object.keys(spending).length === 0) {
+        return null;
+    }
+
+    // Trova l'ID dell'utente che ha speso di più
+    const topUserId = Object.keys(spending).reduce((a, b) => spending[a] > spending[b] ? a : b);
+    const topAmount = spending[topUserId];
+
+    // Trova il suo username
+    const topSpender = await mongoose.model('User').findById(topUserId, 'username');
+
+    return {
+        username: topSpender.username,
+        amount: topAmount
+    };
+};
+
 module.exports = mongoose.model('Group', groupSchema);
