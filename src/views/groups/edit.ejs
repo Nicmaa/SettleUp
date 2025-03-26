@@ -1,86 +1,94 @@
 <% layout('./layouts/layout') -%>
-
     <div class="row">
         <div class="col-md-6 offset-md-3 my-5">
-            <h3 class="text-center">Modifica il gruppo</h3>
+            <h3 class="text-center">Modifica Gruppo</h3>
             <form action="/groups/<%= group._id %>?_method=PUT" method="POST" novalidate class="validated-form">
                 <div class="form-group mb-3">
                     <label for="name">Titolo</label>
                     <input type="text" class="form-control" id="name" name="name" value="<%= group.name %>" required>
-                    <div class="valid-feedback">
-                        Tutto bene!
-                    </div>
-                    <div class="invalid-feedback">
-                        Perfavore scrivi un titolo!
-                    </div>
+                    <div class="valid-feedback">Tutto bene!</div>
+                    <div class="invalid-feedback">Perfavore scrivi un titolo!</div>
                 </div>
                 <div class="form-group mb-3">
                     <label for="description">Descrizione</label>
-                    <textarea class="form-control" name="description" id="description" rows="5"><%= group.description %></textarea>
+                    <textarea class="form-control" name="description" id="description" rows="3"><%= group.description %></textarea>
                 </div>
                 <div class="form-group mb-3">
                     <label for="image">URL Immagine</label>
-                    <input type="text" class="form-control" id="image" name="image" value="<%= group.image %>">
+                    <input type="url" class="form-control" id="image" name="image" value="<%= group.image === '/images/default_group.jpg' ? '' : group.image %>">
                 </div>
                 <div class="form-group mb-3">
-                    <label class="mb-2" for="participants">Partecipanti:</label>
+                    <label class="mb-2" for="participants[]">Partecipanti:</label>
                     <div id="listParticipants">
-                        <% group.participants.forEach((p, index)=> { %>
-                            <div class="input-group mb-2">
-                                <input type="text" name="participants[]" class="form-control" value="<%= p.username %>"
-                                    required>
-                                <button type="button" class="btn btn-outline-danger removeParticipant">X</button>
-                                <div class="valid-feedback">
-                                    Tutto bene!
-                                </div>
-                                <div class="invalid-feedback">
-                                    Perfavore scrivi il nome di un partecipante!
-                                </div>
-                            </div>
-                            <% }); %>
+                        <% group.participants.forEach((participant, index) => { %>
+                        <div class="input-group mb-2">
+                            <select class="form-control participant-select" name="participants[]" required>
+                                <% users.forEach(u => { %>
+                                    <option value="<%= u._id %>" <%= participant._id.equals(u._id) ? 'selected' : '' %>><%= u.username %></option>
+                                <% }) %>
+                            </select>
+                            <button type="button" class="btn btn-outline-danger remove-participant">X</button>
+                        </div>
+                        <% }); %>
                     </div>
-                    <button id="addParticipant" type="button" class="btn btn-outline-primary mt-2">+ Aggiungi Partecipante</button>
+                    <button id="addParticipant" type="button" class="btn btn-outline mt-2">+ Aggiungi Partecipante</button>
                 </div>
-
-                <button type="submit" class="btn btn-success btn-lg w-100">Invia</button>
+                <button type="submit" class="button btn-lg w-100">Aggiorna</button>
             </form>
         </div>
     </div>
 
-    <script>
-        document.addEventListener("DOMContentLoaded", () => {
-            const addBtn = document.getElementById("addParticipant");
-            const list = document.getElementById("listParticipants");
+<script>
+    document.addEventListener("DOMContentLoaded", () => {
+        const addBtn = document.getElementById("addParticipant");
+        const list = document.getElementById("listParticipants");
+        
+        function createParticipantSelect() {
+            const div = document.createElement("div");
+            div.className = "input-group mb-2";
 
-            addBtn.addEventListener("click", function (event) {
-                event.preventDefault();
-                const div = document.createElement("div");
-                div.className = "input-group mb-2";
+            const select = document.createElement("select");
+            select.name = "participants[]";
+            select.className = "form-control participant-select";
+            select.required = true;
 
-                const input = document.createElement("input");
-                input.type = "text";
-                input.name = "participants[]";
-                input.className = "form-control";
-                input.placeholder = "Nuovo partecipante";
-                input.autofocus = true;
+            const blankOption = document.createElement("option");
+            blankOption.value = "";
+            blankOption.text = "Seleziona un partecipante";
+            select.appendChild(blankOption);
 
-                const removeBtn = document.createElement("button");
-                removeBtn.type = "button";
-                removeBtn.className = "btn btn-outline-danger removeParticipant";
-                removeBtn.innerHTML = "X";
-                removeBtn.addEventListener("click", function () {
-                    div.remove();
+            const existingSelect = document.querySelector('.participant-select');
+            if (existingSelect) {
+                existingSelect.querySelectorAll("option").forEach(option => { 
+                    if (option.value) { 
+                        const newOption = document.createElement("option");
+                        newOption.value = option.value;
+                        newOption.text = option.text;
+                        select.appendChild(newOption);
+                    }
                 });
+            }
 
-                div.appendChild(input);
-                div.appendChild(removeBtn);
-                list.appendChild(div);
-            });
+            const removeBtn = document.createElement("button");
+            removeBtn.type = "button";
+            removeBtn.className = "btn btn-outline-danger remove-participant";
+            removeBtn.innerHTML = "X";
+            removeBtn.addEventListener("click", () => div.remove());
 
-            document.addEventListener("click", function (event) {
-                if (event.target.classList.contains("removeParticipant")) {
-                    event.target.parentElement.remove();
-                }
+            div.appendChild(select);
+            div.appendChild(removeBtn);
+            return div;
+        }
+
+        addBtn.addEventListener("click", function () {
+            list.appendChild(createParticipantSelect());
+        });
+
+        document.querySelectorAll(".remove-participant").forEach(btn => {
+            btn.addEventListener("click", function () {
+                this.closest(".input-group").remove();
             });
         });
-    </script>
+    });
+</script>
+
