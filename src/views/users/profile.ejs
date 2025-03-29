@@ -12,11 +12,218 @@
                 <div class="profile-bio">
                     <p>Bio:</p>
                     <p><%= user.bio || "Ancora nessuna bio!" %></p>
-                </div>   
-                <div>
-                    <button class="btn btn-add-group"><a href="/users/profile/edit">Modifica profilo</a></button>
+                </div>
+                <div class="d-flex align-items-center">
+                    <button class="btn btn-add-group me-2">
+                        <a href="/users/profile/edit">Modifica profilo</a>
+                    </button>
+                    <button class="btn btn-add-group me-1">
+                        <a href="">Aggiungi amico</a>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-6">
+            <div class="card friend-section-card">
+                <div class="card-header">
+                    <h3>Richieste di Amicizia</h3>
+                    <span class="badge bg-primary">
+                        <%= user.friendRequests.length + user.sentRequests.length %> Totali
+                    </span>
+                </div>
+                <div class="card-body">
+                    <ul class="nav nav-tabs" id="friendRequestTabs">
+                        <li class="nav-item">
+                            <a class="nav-link active" data-toggle="tab" href="#incomingRequests">
+                                Richieste in Entrata (<%= user.friendRequests.length %>)
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" data-toggle="tab" href="#sentRequests">
+                                Richieste Inviate (<%= user.sentRequests.length %>)
+                            </a>
+                        </li>
+                    </ul>
+
+                    <div class="tab-content mt-3">
+                        <div class="tab-pane fade show active" id="incomingRequests">
+                            <% if (user.friendRequests.length === 0) { %>
+                                <div class="empty-state text-center">
+                                    <i class="fas fa-user-friends mb-3"></i>
+                                    <p>Nessuna richiesta di amicizia in entrata</p>
+                                </div>
+                            <% } else { %>
+                                <% user.friendRequests.forEach(function(request) { %>
+                                    <div class="friend-request d-flex align-items-center mb-2">
+                                        <img src="<%= request.avatar %>" class="rounded-circle me-3" style="width: 60px; height: 60px; object-fit: cover;">
+                                        <div class="flex-grow-1">
+                                            <h5 class="mb-1"><%= request.fullName %></h5>
+                                            <p class="mb-0">@<%= request.username %></p>
+                                        </div>
+                                        <div class="friend-action-buttons">
+                                            <form action="/users/friends/requests" method="POST">
+                                                <input type="hidden" name="senderId" value="<%= request._id %>">
+                                                
+                                                <button type="submit" class="btn btn-success btn-sm btn-accept-request me-2" name="accepted" value="true">
+                                                    <i class="fas fa-check"></i> Accetta
+                                                </button>
+                                
+                                                <button type="submit" class="btn btn-danger btn-sm btn-reject-request" name="accepted" value="false">
+                                                    <i class="fas fa-times"></i> Rifiuta
+                                                </button>
+                                            </form>
+                                        </div>
+                                    </div>
+                                <% }); %>                                
+                            <% } %>
+                        </div>
+
+                        <div class="tab-pane fade" id="sentRequests">
+                            <% if (user.sentRequests.length === 0) { %>
+                                <div class="empty-state text-center">
+                                    <i class="fas fa-paper-plane mb-3"></i>
+                                    <p>Nessuna richiesta di amicizia inviata</p>
+                                </div>
+                            <% } else { %>
+                                <% user.sentRequests.forEach(function(request) { %>
+                                    <div class="sent-request d-flex align-items-center mb-2">
+                                        <img src="<%= request.avatar %>" class="rounded-circle me-3" style="width: 60px; height: 60px; object-fit: cover;">
+                                        <div class="flex-grow-1">
+                                            <h5 class="mb-1"><%= request.fullName %></h5>
+                                            <p class="mb-0">@<%= request.username %></p>
+                                        </div>
+                                        <div>
+                                            <form action="/users/friends/requests?_method=DELETE" method="POST">
+                                                <input type="hidden" name="receiverId" value="<%= request._id %>">
+                                                <button type="submit" class="btn btn-secondary btn-sm">
+                                                    <i class="fas fa-times-circle me-1"></i> Annulla Richiesta
+                                                </button>
+                                            </form>
+                                        </div>
+                                    </div>
+                                <% }); %>                                
+                            <% } %>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6">
+            <div class="card friend-section-card">
+                <div class="card-header">
+                    <h3>Amici</h3>
+                    <span class="badge bg-primary">
+                        <%= user.friends.length %>
+                    </span>
+                </div>
+                <div class="card-body">
+                    <% if (user.friends.length === 0) { %>
+                        <div class="empty-state text-center">
+                            <i class="fas fa-user-friends mb-3"></i>
+                            <p>Non hai ancora amici</p>
+                        </div>
+                    <% } else { %>
+                        <% user.friends.forEach(function(friend) { %>
+                            <div class="friend d-flex align-items-center mb-2">
+                                <img src="<%= friend.avatar %>" class="rounded-circle me-3" style="width: 60px; height: 60px; object-fit: cover;">
+                                <div class="flex-grow-1">
+                                    <h5 class="mb-1"><%= friend.fullName %></h5>
+                                    <p class="mb-0">@<%= friend.username %></p>
+                                </div>
+                                <div class="friend-action-buttons">
+                                    <form action="/users/friends?_method=DELETE" method="POST">
+                                        <input type="hidden" name="friendId" value="<%= friend._id %>">
+                                        <button type="submit" class="btn btn-danger btn-sm">
+                                            <i class="fas fa-user-minus"></i> Rimuovi
+                                        </button>
+                                    </form>
+                                </div>
+                            </div>
+                        <% }); %>
+                    <% } %>
                 </div>
             </div>
         </div>
     </div>
 </div>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+    
+    const friendRequestTabs = document.querySelectorAll('#friendRequestTabs .nav-link');
+    const tabPanes = document.querySelectorAll('.tab-pane');
+
+    friendRequestTabs.forEach(tab => {
+        tab.addEventListener('click', function(e) {
+            e.preventDefault();
+            
+            friendRequestTabs.forEach(t => t.classList.remove('active'));
+            tabPanes.forEach(p => {
+                p.classList.remove('show', 'active');
+            });
+
+            this.classList.add('active');
+
+            const targetPaneId = this.getAttribute('href');
+            const targetPane = document.querySelector(targetPaneId);
+            targetPane.classList.add('show', 'active');
+        });
+    });
+
+    const addFriendBtn = document.querySelector('.btn-add-group a[href=""]');
+    
+    function createAddFriendModal() {
+        const backdrop = document.createElement('div');
+        backdrop.className = 'modal-backdrop fade show';
+        document.body.appendChild(backdrop);
+
+        const modal = document.createElement('div');
+        modal.className = 'modal fade show';
+        modal.style.display = 'block';
+        modal.innerHTML = `
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Aggiungi Amico</h5>
+                        <button type="button" class="btn-close" aria-label="Close"></button>
+                    </div>
+                    <form action="/users/friends" method="POST" novalidate>
+                        <div class="modal-body">
+                            <div class="mb-3">
+                                <label for="receiverUsername" class="form-label">Username dell'amico</label>
+                                <input type="text" class="form-control" id="receiverUsername" name="receiverUsername" placeholder="Inserisci username" required>
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary btn-close-modal">Annulla</button>
+                            <button type="submit" class="btn btn-primary btn-send-request">Invia Richiesta</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        `;
+        document.body.appendChild(modal);
+
+        const closeButtons = modal.querySelectorAll('.btn-close, .btn-close-modal');
+        closeButtons.forEach(btn => {
+            btn.addEventListener('click', () => {
+                modal.remove();
+                backdrop.remove();
+            });
+        });
+
+        const sendRequestBtn = modal.querySelector('.btn-send-request');
+        const usernameInput = modal.querySelector('#receiverUsername');
+    }
+
+    if (addFriendBtn) {
+        addFriendBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            createAddFriendModal();
+        });
+    }
+});
+</script>

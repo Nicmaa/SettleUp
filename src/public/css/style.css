@@ -768,7 +768,7 @@ footer {
 
 /* PROFILE */
 .profile-container {
-  max-width: 800px;
+  max-width: 1000px;
   margin-top: 2rem;
   margin-bottom: 2rem;
 }
@@ -820,6 +820,130 @@ footer {
 .profile-bio p:last-child {
   margin-bottom: 0;
   line-height: 1.6;
+}
+
+.friend-section-card {
+  background-color: var(--card-bg);
+  border-radius: 15px;
+  box-shadow: var(--shadow);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  margin-bottom: 1.5rem;
+}
+
+.friend-section-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 15px 30px rgba(0, 0, 0, 0.2);
+}
+
+.friend-section-card .card-header {
+  background-color: var(--primary-dark);
+  color: white;
+  border-top-left-radius: 15px;
+  border-top-right-radius: 15px;
+  padding: 15px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.friend-section-card .card-header h3 {
+  margin: 0;
+  font-weight: 600;
+}
+
+.nav-tabs {
+  border-bottom: 2px solid var(--primary);
+}
+
+.nav-tabs .nav-link {
+  color: var(--text-color);
+  font-weight: 500;
+  transition: all 0.3s ease;
+}
+
+.nav-tabs .nav-link.active {
+  background-color: var(--primary);
+  color: white;
+  border-color: var(--primary);
+}
+
+.nav-tabs .nav-link:hover {
+  background-color: rgba(0, 0, 0, 0.1);
+}
+
+.friend-request, .sent-request, .friend {
+  background-color: rgba(0, 0, 0, 0.05);
+  border-radius: 10px;
+  padding: 10px;
+  margin-bottom: 10px;
+  transition: background-color 0.3s ease;
+}
+
+.friend-request:hover, 
+.sent-request:hover, 
+.friend:hover {
+  background-color: rgba(0, 0, 0, 0.1);
+}
+
+.friend-request img, 
+.sent-request img, 
+.friend img {
+  width: 60px;
+  height: 60px;
+  object-fit: cover;
+  border-radius: 50%;
+  border: 2px solid var(--primary);
+  transition: transform 0.3s ease;
+}
+
+.friend-request img:hover, 
+.sent-request img:hover, 
+.friend img:hover {
+  transform: scale(1.1);
+}
+
+.friend-action-buttons .btn {
+  margin-left: 5px;
+  transition: all 0.3s ease;
+}
+
+.btn-add-friend, 
+.btn-accept-request, 
+.btn-reject-request {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+}
+
+.btn-add-friend i, 
+.btn-accept-request i, 
+.btn-reject-request i {
+  margin-right: 5px;
+}
+
+.empty-state {
+  text-align: center;
+  color: var(--text-muted);
+  padding: 20px;
+  background-color: rgba(0, 0, 0, 0.05);
+  border-radius: 10px;
+}
+
+/* Responsive Adjustments */
+@media (max-width: 768px) {
+  .friend-request, 
+  .sent-request, 
+  .friend {
+    flex-direction: column;
+    text-align: center;
+  }
+
+  .friend-action-buttons {
+    margin-top: 10px;
+    display: flex;
+    justify-content: center;
+  }
 }
 
 /* SHOW GROUP */
