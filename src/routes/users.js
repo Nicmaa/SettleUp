@@ -16,7 +16,7 @@ router.post('/logout', isLoggedIn, user.logout);
 router.route('/profile')
     .get(isLoggedIn, catchAsync(user.profile))
     .put(isLoggedIn, catchAsync(user.editProfile));
-    // Manca il .delete
+// Manca il .delete
 
 router.get('/profile/edit', isLoggedIn, catchAsync(user.renderEditProfile));
 
@@ -30,5 +30,13 @@ router.post('/change-password', isLoggedIn, validatePasswordStrength, catchAsync
     req.flash('success', 'Password modificata correttamente!');
     res.redirect('/users/profile');
 }));
+
+router.route('/friends')
+    .post(isLoggedIn, catchAsync(user.sendFriendRequest))
+    .delete(isLoggedIn, catchAsync(user.removeFriend));
+
+router.route('/friends/requests')
+    .post(isLoggedIn, catchAsync(user.respondFriendRequest))
+    .delete(isLoggedIn, catchAsync(user.cancelFriendRequest));
 
 module.exports = router;

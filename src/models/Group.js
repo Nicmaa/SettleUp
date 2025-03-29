@@ -20,6 +20,7 @@ const groupSchema = new Schema({
     participants: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true }],
     transactions: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Transaction' }],
     balance: [{ from: String, to: String, amount: Number }],
+    invitedUsers: [{ email: String, name: String }],
     createdAt: { type: Date, default: Date.now },
     updatedAt: { type: Date, default: Date.now }
 }, {
