@@ -14,29 +14,44 @@ module.exports.index = async (req, res) => {
 };
 
 module.exports.createGroup = async (req, res) => {
+    const { name, description, participants, image, invitedNames, invitedEmails } = req.body;
 
-    const validation = validateParticipants(req.body.participants, req.user._id);
+    const invitedUsers = [];
+
+    for (let i = 0; i < invitedEmails.length; i++) {
+        const email = invitedEmails[i];
+        if (email && email.trim()) {
+            const name = invitedNames[i] && invitedNames[i].trim()
+                ? invitedNames[i].trim()
+                : `Invitato ${i + 1}`;
+
+            invitedUsers.push({ email, name });
+        }
+    }
+
+    const validation = validateParticipants(participants, invitedUsers, req.user._id);
     if (!validation.isValid) {
         req.flash('error', validation.message);
         return res.redirect('/groups/new');
     }
 
-    const newGroup = new Group({
-        name: req.body.name,
-        image: req.body.image || undefined,
-        description: req.body.description,
+    const group = new Group({
+        name,
+        image: image || undefined,
+        description,
         participants: validation.participants,
         owner: req.user._id,
+        invitedUsers: invitedUsers,
     });
 
-    await newGroup.save();
+    await group.save();
     req.flash('success', 'Gruppo creato con successo!');
-    res.redirect('/groups');
+    res.redirect(`/groups/${group._id}`);
 };
 
 module.exports.renderNewForm = async (req, res) => {
-    const users = await User.find({}, 'username _id').sort('username');
-    res.render('groups/new', { users });
+    const user = await User.findById(req.user._id).populate("friends", "username");
+    res.render('groups/new', { user });
 };
 
 module.exports.showGroup = async (req, res) => {
@@ -53,18 +68,16 @@ module.exports.showGroup = async (req, res) => {
 
     if (!group) throw new ExpressError("Gruppo non trovato!", 404);
     const topSpender = await group.topSpender();
-    
+
     res.render('groups/show', { group, topSpender });
 };
 
 module.exports.renderEditForm = async (req, res) => {
-    const [group, users] = await Promise.all([
-        Group.findById(req.params.id).populate('participants', 'username avatar'),
-        User.find({}, 'username _id').sort('username')
-    ]);
+    const group = await Group.findById(req.params.id).populate('participants', 'username avatar');
+    const user = await User.findById(req.user._id).populate("friends", "username");
 
     if (!group) throw new ExpressError("Gruppo non trovato!", 404);
-    res.render('groups/edit', { group, users });
+    res.render('groups/edit', { group, user });
 };
 
 module.exports.editGroup = async (req, res) => {
