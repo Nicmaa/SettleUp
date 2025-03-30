@@ -8,6 +8,8 @@ module.exports.groupSchema = Joi.object({
     participants: Joi.array().items(Joi.string().hex().length(24).required()).min(1).required(),
     transactions: Joi.array().items(Joi.string().hex().length(24)),
     balance: Joi.array().items(Joi.object({ from: Joi.string(), to: Joi.string(), amount: Joi.number() })),
+    invitedEmails: Joi.array().items(Joi.string().email({ minDomainSegments: 2, tlds: { allow: ['com', 'net'] } })),
+    invitedNames: Joi.array().items(Joi.string().allow('')),
     createdAt: Joi.date().default(Date.now),
     updatedAt: Joi.date().default(Date.now)
 }).required();
@@ -17,9 +19,12 @@ module.exports.transactionSchema = Joi.object({
     category: Joi.string(),
     amounts: Joi.array().items(
         Joi.object({
-            user: Joi.string().hex().length(24).required(),
-            amount: Joi.number().precision(2).required().min(0)
+            user: Joi.alternatives().try(
+                Joi.string(),
+                Joi.object()
+            ).required(),
+            amount: Joi.number().min(0).required(),
+            isInvited: Joi.boolean().default(false)
         })
-    ).min(1).required(),
-    createdAt: Joi.date().default(Date.now),
+    ).min(1).required()
 }).required();

@@ -78,7 +78,7 @@ module.exports.validatePasswordStrength = (req, res, next) => {
     const hasNumber = /\d/.test(password);
     const hasLowerCase = /[a-z]/.test(password);
     const hasUpperCase = /[A-Z]/.test(password);
-    
+
     if (!hasNumber || !hasLowerCase || !hasUpperCase) {
         req.flash('error', 'La password deve contenere almeno una lettera maiuscola, una minuscola e un numero!');
         return res.redirect('/');
@@ -87,24 +87,24 @@ module.exports.validatePasswordStrength = (req, res, next) => {
     next();
 };
 
-module.exports.validateParticipants = (participants, userId) => {
+module.exports.validateParticipants = (participants, invited, userId) => {
     // Controllo numero minimo partecipanti
-    if (!participants || participants.length < 2) {
+    if (!participants && !invited || participants.length + invited.length < 2) {
         return { isValid: false, message: 'Devono essere presenti almeno 2 partecipanti!' };
     }
-    
+
     // Controllo presenza del proprietario nei partecipanti
     const participantsArray = Array.isArray(participants) ? [...participants] : [participants];
     const hasOwner = participantsArray.includes(userId.toString());
-    
+
     // Controllo duplicati
     const participantsSet = new Set(participantsArray);
     if (participantsSet.size !== participantsArray.length) {
         return { isValid: false, message: 'Hai inserito lo stesso partecipante più volte!' };
     }
-    
-    return { 
-        isValid: true, 
+
+    return {
+        isValid: true,
         participants: hasOwner ? participantsArray : [...participantsArray, userId.toString()]
     };
 };
@@ -120,17 +120,39 @@ module.exports.validateGroup = (req, res, next) => {
 };
 
 module.exports.validateTransaction = (req, res, next) => {
-    if (!req.body.user || !req.body.amount) {
+    if ((!req.body.user || !req.body.amount) && (!req.body.invitedUsername || !req.body.invitedAmount)) {
         throw new ExpressError("Dati della transazione mancanti", 400);
+    }
+
+    // Inizializza gli array se non esistono
+    req.body.user = req.body.user || [];
+    req.body.amount = req.body.amount || [];
+    req.body.invitedUsername = req.body.invitedUsername || [];
+    req.body.invitedAmount = req.body.invitedAmount || [];
+
+    const amounts = [];
+
+    for (let i = 0; i < req.body.user.length; i++) {
+        const amount = parseFloat(req.body.amount[i]) || 0;
+        amounts.push({
+            user: req.body.user[i],
+            amount: amount,
+            isInvited: false
+        });
+    }
+    for (let i = 0; i < req.body.invitedUsername.length; i++) {
+        const amount = parseFloat(req.body.invitedAmount[i]) || 0;
+        amounts.push({
+            user: req.body.invitedUsername[i],
+            amount: amount,
+            isInvited: true
+        });
     }
 
     const transformedData = {
         description: req.body.description || '',
         category: req.body.category || 'Altro',
-        amounts: req.body.user.map((user, index) => ({
-            user,
-            amount: parseFloat(req.body.amount[index]) || 0
-        }))
+        amounts: amounts
     };
 
     const { error } = transactionSchema.validate(transformedData);

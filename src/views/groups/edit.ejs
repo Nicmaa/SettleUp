@@ -1,94 +1,136 @@
 <% layout('./layouts/layout') -%>
-    <div class="row">
-        <div class="col-md-6 offset-md-3 my-5">
-            <h3 class="text-center">Modifica Gruppo</h3>
-            <form action="/groups/<%= group._id %>?_method=PUT" method="POST" novalidate class="validated-form">
-                <div class="form-group mb-3">
-                    <label for="name">Titolo</label>
-                    <input type="text" class="form-control" id="name" name="name" value="<%= group.name %>" required>
-                    <div class="valid-feedback">Tutto bene!</div>
-                    <div class="invalid-feedback">Perfavore scrivi un titolo!</div>
+
+<div class="row">
+    <div class="col-md-6 offset-md-3 my-5">
+        <h3 class="text-center">Modifica gruppo</h3>
+        <form action="/groups/<%= group._id %>?_method=PUT" method="POST" novalidate class="validated-form">
+            <div class="form-group mb-3">
+                <label for="name">Titolo</label>
+                <input type="text" class="form-control" id="name" name="name" value="<%= group.name %>" required>
+                <div class="valid-feedback">
+                    Tutto bene!
                 </div>
-                <div class="form-group mb-3">
-                    <label for="description">Descrizione</label>
-                    <textarea class="form-control" name="description" id="description" rows="3"><%= group.description %></textarea>
+                <div class="invalid-feedback">
+                    Perfavore scrivi un titolo!
                 </div>
-                <div class="form-group mb-3">
-                    <label for="image">URL Immagine</label>
-                    <input type="url" class="form-control" id="image" name="image" value="<%= group.image === '/images/default_group.jpg' ? '' : group.image %>">
+            </div>
+
+            <div class="form-group mb-3">
+                <label for="description">Descrizione</label>
+                <textarea class="form-control" name="description" id="description" rows="3"><%= group.description %></textarea>
+            </div>
+            <div class="form-group mb-3">
+                <label for="image">URL Immagine</label>
+                <input type="url" class="form-control" id="image" name="image" value="<%= group.image %>">
+            </div>
+
+            <div class="form-group mb-3">
+                <h5>Amici nel Gruppo</h5>
+                <div id="friendsList" class="mb-3">
+                    <% if(user && user.friends && user.friends.length > 0) { %>
+                        <% for(let friend of user.friends) { %>
+                            <% 
+                                const isParticipant = group.participants && 
+                                                    group.participants.some(p => p._id.toString() === friend._id.toString());
+                            %>
+                            <div class="form-check mb-2">
+                                <input class="form-check-input" type="checkbox" name="participants[]" 
+                                    value="<%= friend._id %>" id="friend-<%= friend._id %>"
+                                    <%= isParticipant ? 'checked' : '' %>>
+                                <label class="form-check-label" for="friend-<%= friend._id %>">
+                                    <%= friend.username || friend.email %>
+                                </label>
+                            </div>
+                        <% } %>
+                    <% } else { %>
+                        <p>Non hai ancora amici. Aggiungi amici per invitarli ai tuoi gruppi.</p>
+                    <% } %>
                 </div>
-                <div class="form-group mb-3">
-                    <label class="mb-2" for="participants[]">Partecipanti:</label>
-                    <div id="listParticipants">
-                        <% group.participants.forEach((participant, index) => { %>
-                        <div class="input-group mb-2">
-                            <select class="form-control participant-select" name="participants[]" required>
-                                <% users.forEach(u => { %>
-                                    <option value="<%= u._id %>" <%= participant._id.equals(u._id) ? 'selected' : '' %>><%= u.username %></option>
-                                <% }) %>
-                            </select>
-                            <button type="button" class="btn btn-outline-danger remove-participant">X</button>
+            </div>
+
+            <div class="form-group mb-4">
+                <h5>Partecipanti Invitati</h5>
+                <div id="invitedList">
+                    <% if(group.invitedUsers && group.invitedUsers.length > 0) { %>
+                        <% for(let invited of group.invitedUsers) { %>
+                            <div class="invited-user-row mb-2">
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <input type="email" class="form-control" name="invitedEmails[]" 
+                                            value="<%= invited.email %>" placeholder="Email">
+                                    </div>
+                                    <div class="col-md-5">
+                                        <input type="text" class="form-control" name="invitedNames[]" 
+                                            value="<%= invited.name %>" placeholder="Nome visualizzato">
+                                    </div>
+                                    <div class="col-md-1">
+                                        <button type="button" class="btn btn-outline-danger remove-invited">X</button>
+                                    </div>
+                                </div>
+                            </div>
+                        <% } %>
+                    <% } else { %>
+                        <div class="invited-user-row mb-2">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <input type="email" class="form-control" name="invitedEmails[]" placeholder="Email">
+                                </div>
+                                <div class="col-md-5">
+                                    <input type="text" class="form-control" name="invitedNames[]" placeholder="Nome visualizzato">
+                                </div>
+                                <div class="col-md-1">
+                                    <button type="button" class="btn btn-outline-danger remove-invited">X</button>
+                                </div>
+                            </div>
                         </div>
-                        <% }); %>
-                    </div>
-                    <button id="addParticipant" type="button" class="btn btn-outline mt-2">+ Aggiungi Partecipante</button>
+                    <% } %>
                 </div>
-                <button type="submit" class="button btn-lg w-100">Aggiorna</button>
-            </form>
-        </div>
+                <button id="addInvited" type="button" class="btn btn-outline mt-2">+ Invita Partecipante</button>
+            </div>
+            
+            <div class="d-flex justify-content-between mt-3">
+                <a href="/groups/<%= group._id %>" class="btn btn-secondary">Annulla</a>
+                <button type="submit" class="button btn-lg">Salva Modifiche</button>
+            </div>
+        </form>
     </div>
+</div>
 
 <script>
-    document.addEventListener("DOMContentLoaded", () => {
-        const addBtn = document.getElementById("addParticipant");
-        const list = document.getElementById("listParticipants");
+document.addEventListener("DOMContentLoaded", () => {
+    const addInvitedBtn = document.getElementById("addInvited");
+    const invitedList = document.getElementById("invitedList");
+    
+    addInvitedBtn.addEventListener("click", function(event) {
+        event.preventDefault();
         
-        function createParticipantSelect() {
-            const div = document.createElement("div");
-            div.className = "input-group mb-2";
-
-            const select = document.createElement("select");
-            select.name = "participants[]";
-            select.className = "form-control participant-select";
-            select.required = true;
-
-            const blankOption = document.createElement("option");
-            blankOption.value = "";
-            blankOption.text = "Seleziona un partecipante";
-            select.appendChild(blankOption);
-
-            const existingSelect = document.querySelector('.participant-select');
-            if (existingSelect) {
-                existingSelect.querySelectorAll("option").forEach(option => { 
-                    if (option.value) { 
-                        const newOption = document.createElement("option");
-                        newOption.value = option.value;
-                        newOption.text = option.text;
-                        select.appendChild(newOption);
-                    }
-                });
-            }
-
-            const removeBtn = document.createElement("button");
-            removeBtn.type = "button";
-            removeBtn.className = "btn btn-outline-danger remove-participant";
-            removeBtn.innerHTML = "X";
-            removeBtn.addEventListener("click", () => div.remove());
-
-            div.appendChild(select);
-            div.appendChild(removeBtn);
-            return div;
-        }
-
-        addBtn.addEventListener("click", function () {
-            list.appendChild(createParticipantSelect());
-        });
-
-        document.querySelectorAll(".remove-participant").forEach(btn => {
-            btn.addEventListener("click", function () {
-                this.closest(".input-group").remove();
-            });
+        const newRow = document.createElement("div");
+        newRow.className = "invited-user-row mb-2";
+        newRow.innerHTML = `
+            <div class="row">
+                <div class="col-md-6">
+                    <input type="email" class="form-control" name="invitedEmails[]" placeholder="Email">
+                </div>
+                <div class="col-md-5">
+                    <input type="text" class="form-control" name="invitedNames[]" placeholder="Nome visualizzato">
+                </div>
+                <div class="col-md-1">
+                    <button type="button" class="btn btn-outline-danger remove-invited">X</button>
+                </div>
+            </div>
+        `;
+        
+        invitedList.appendChild(newRow);
+        
+        newRow.querySelector(".remove-invited").addEventListener("click", function() {
+            this.closest(".invited-user-row").remove();
         });
     });
+    
+    document.querySelectorAll(".remove-invited").forEach(btn => {
+        btn.addEventListener("click", function() {
+            this.closest(".invited-user-row").remove();
+        });
+    });
+});
 </script>
-

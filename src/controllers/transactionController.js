@@ -14,12 +14,8 @@ module.exports.renderNewForm = async (req, res) => {
 
 module.exports.createTransaction = async (req, res) => {
     const group = await Group.findById(req.params.id);
-    if (!group) throw new ExpressError("Gruppo non trovato!", 404);
 
-    if (!req.body.amounts || !req.body.amounts.some(a => a.amount > 0)) {
-        req.flash('error', 'Almeno un importo deve essere maggiore di 0');
-        return res.redirect(`/transactions/new/${group._id}`);
-    }
+    if (!group) throw new ExpressError("Gruppo non trovato!", 404);
 
     const newTransaction = new Transaction({
         group: group._id,
@@ -29,10 +25,8 @@ module.exports.createTransaction = async (req, res) => {
     });
 
     await newTransaction.save();
-
     group.transactions.push(newTransaction._id);
     await group.save();
-
     await Transaction.refreshBalance(group._id);
 
     req.flash('success', 'Transazione creata con successo!');
@@ -56,7 +50,7 @@ module.exports.renderEditForm = async (req, res) => {
 module.exports.editTransaction = async (req, res) => {
     const transaction = await Transaction.findById(req.params.id);
     if (!transaction) throw new ExpressError("Transazione non trovata!", 404);
-    
+
     if (!req.body.amounts || !req.body.amounts.some(a => a.amount > 0)) {
         throw new ExpressError("Almeno un importo deve essere maggiore di 0", 400);
     }

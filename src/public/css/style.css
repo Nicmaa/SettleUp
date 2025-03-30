@@ -276,35 +276,6 @@ h1 {
   box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
 }
 
-.floating-btn {
-  position: fixed;
-  bottom: 30px;
-  right: 30px;
-  width: 60px;
-  height: 60px;
-  border-radius: 50%;
-  background: var(--accent);
-  color: #333;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  font-size: 1.5rem;
-  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
-  cursor: pointer;
-  z-index: 100;
-  transition: all 0.3s;
-}
-
-.floating-btn a {
-  color: #333;
-  text-decoration: none;
-}
-
-.floating-btn:hover {
-  transform: scale(1.1);
-  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.4);
-}
-
 .stats-badge {
   background: rgba(78, 84, 200, 0.3);
   color: var(--text);

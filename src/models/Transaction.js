@@ -12,8 +12,9 @@ const transactionSchema = new Schema({
     },
     amounts: [
         {
-            user: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
-            amount: { type: Number, required: true, default: 0, min: [0, 'Il prezzo non può essere minore di 0'] }
+            user: { type: String, required: true },
+            amount: { type: Number, required: true, default: 0, min: [0, 'Il prezzo non può essere minore di 0'] },
+            isInvited: { type: Boolean, default: false }
         }
     ],
     createdAt: { type: Date, default: Date.now }
@@ -27,25 +28,18 @@ transactionSchema.virtual('formattedDate').get(function () {
 });
 
 transactionSchema.statics.refreshBalance = async function (groupId) {
-    try {
-        const Group = mongoose.model('Group');
-        
-        const group = await Group.findById(groupId).populate({
-            path: 'transactions',
-            populate: { path: 'amounts.user' }
+    const group = await Group.findById(groupId)
+        .populate({
+            path: 'transactions'
         });
-        
-        if (!group) throw new ExpressError(`Gruppo con ID ${groupId} non trovato`,404);
-        
-        const { transactionsToSettle } = Group.calculateBalances(group.transactions);
-        group.balance = transactionsToSettle;
-        
-        await group.save();
-        return group;
-    } catch (error) {
-        console.error('Errore durante il refresh del bilancio:', error);
-        throw new ExpressError(`Errore nel refresh dei bilanci. Riprovare.`,error.status || 500);
-    }
+
+    if (!group) throw new ExpressError(`Gruppo con ID ${groupId} non trovato`, 404);
+
+    const { transactionsToSettle } = Group.calculateBalances(group.transactions);
+    group.balance = transactionsToSettle;
+
+    await group.save();
+    return group;
 };
 
 module.exports = mongoose.model('Transaction', transactionSchema);

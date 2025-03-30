@@ -23,71 +23,84 @@
                 <label for="image">URL Immagine</label>
                 <input type="url" class="form-control" id="image" name="image">
             </div>
+
             <div class="form-group mb-3">
-                <label class="mb-2" for="participants[]">Partecipanti:</label>
-                <div id="listParticipants">
-                    <div class="input-group mb-2">
-                        <select class="form-control participant-select" name="participants[]" required>
-                            <option value="">Seleziona un partecipante</option>
-                            <% for(let u of users) { %>
-                                <option value="<%= u._id %>"><%= u.username %></option>
-                            <% } %>
-                        </select>
-                        <button type="button" class="btn btn-outline-danger remove-participant">X</button>
-                        <div class="valid-feedback">
-                            Tutto bene!
-                        </div>
-                        <div class="invalid-feedback">
-                            Perfavore seleziona l'username di un partecipante!
+                <h5>Aggiungi Amici al Gruppo</h5>
+                <div id="friendsList" class="mb-3">
+                    <% if(user && user.friends && user.friends.length > 0) { %>
+                        <% for(let friend of user.friends) { %>
+                            <div class="form-check mb-2">
+                                <input class="form-check-input" type="checkbox" name="participants[]" value="<%= friend._id %>" id="friend-<%= friend._id %>">
+                                <label class="form-check-label" for="friend-<%= friend._id %>">
+                                    <%= friend.username || friend.email %>
+                                </label>
+                            </div>
+                        <% } %>
+                    <% } else { %>
+                        <p>Non hai ancora amici. Aggiungi amici per invitarli ai tuoi gruppi.</p>
+                    <% } %>
+                </div>
+            </div>
+
+            <div class="form-group mb-4">
+                <h5>Invita Altri Partecipanti</h5>
+                <div id="invitedList">
+                    <div class="invited-user-row mb-2">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <input type="email" class="form-control" name="invitedEmails[]" placeholder="Email">
+                            </div>
+                            <div class="col-md-5">
+                                <input type="text" class="form-control" name="invitedNames[]" placeholder="Nome visualizzato">
+                            </div>
+                            <div class="col-md-1">
+                                <button type="button" class="btn btn-outline-danger remove-invited">X</button>
+                            </div>
                         </div>
                     </div>
                 </div>
-                <button id="addParticipant" type="button" class="btn btn-outline mt-2">+ Aggiungi
-                    Partecipante</button>
+                <button id="addInvited" type="button" class="btn btn-outline mt-2">+ Invita Partecipante</button>
             </div>
-
-            <button type="submit" class="button btn-lg w-100">Invia</button>
+            
+            <button type="submit" class="button btn-lg w-100">Crea Gruppo</button>
         </form>
     </div>
 </div>
 
 <script>
 document.addEventListener("DOMContentLoaded", () => {
-    const addBtn = document.getElementById("addParticipant");
-    const list = document.getElementById("listParticipants");
+    const addInvitedBtn = document.getElementById("addInvited");
+    const invitedList = document.getElementById("invitedList");
     
-    const existingSelect = document.querySelector(".participant-select");
-    const optionsHTML = existingSelect ? existingSelect.innerHTML : "";
-
-    addBtn.addEventListener("click", function (event) {
+    addInvitedBtn.addEventListener("click", function(event) {
         event.preventDefault();
-
-        const div = document.createElement("div");
-        div.className = "input-group mb-2";
-
-        const select = document.createElement("select");
-        select.name = "participants[]";
-        select.className = "form-control participant-select";
-        select.required = true;
-
-        select.innerHTML = optionsHTML;
-
-        const removeBtn = document.createElement("button");
-        removeBtn.type = "button";
-        removeBtn.className = "btn btn-outline-danger remove-participant";
-        removeBtn.innerHTML = "X";
-        removeBtn.addEventListener("click", function () {
-            div.remove();
+        
+        const newRow = document.createElement("div");
+        newRow.className = "invited-user-row mb-2";
+        newRow.innerHTML = `
+            <div class="row">
+                <div class="col-md-6">
+                    <input type="email" class="form-control" name="invitedEmails[]" placeholder="Email">
+                </div>
+                <div class="col-md-5">
+                    <input type="text" class="form-control" name="invitedNames[]" placeholder="Nome visualizzato">
+                </div>
+                <div class="col-md-1">
+                    <button type="button" class="btn btn-outline-danger remove-invited">X</button>
+                </div>
+            </div>
+        `;
+        
+        invitedList.appendChild(newRow);
+        
+        newRow.querySelector(".remove-invited").addEventListener("click", function() {
+            this.closest(".invited-user-row").remove();
         });
-
-        div.appendChild(select);
-        div.appendChild(removeBtn);
-        list.appendChild(div);
     });
-
-    document.querySelectorAll(".remove-participant").forEach(btn => {
-        btn.addEventListener("click", function () {
-            this.closest(".input-group").remove();
+    
+    document.querySelectorAll(".remove-invited").forEach(btn => {
+        btn.addEventListener("click", function() {
+            this.closest(".invited-user-row").remove();
         });
     });
 });

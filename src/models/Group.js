@@ -46,14 +46,16 @@ groupSchema.virtual('totalSpent').get(function () {
 });
 
 groupSchema.methods.currentUserBalance = function (currentUser) {
+    const username = currentUser.username;
+    
     const userTransactions = this.balance.filter(entry => 
-        entry.from === currentUser.username || entry.to === currentUser.username
+        entry.from === username || entry.to === username
     );
     
     const totalAmount = userTransactions.reduce((sum, entry) => {
-        if (entry.from === currentUser.username) {
+        if (entry.from === username) {
             return sum - parseFloat(entry.amount);
-        } else if (entry.to === currentUser.username) {
+        } else if (entry.to === username) {
             return sum + parseFloat(entry.amount);
         }
         return sum;
@@ -71,7 +73,7 @@ groupSchema.statics.calculateBalances = function (transactions) {
         t.amounts && 
         Array.isArray(t.amounts) && 
         t.amounts.length > 0 && 
-        t.amounts.every(a => a.user && a.amount !== undefined)
+        t.amounts.every(a => a.user !== undefined && a.amount !== undefined)
     );
 
     if (transactions.length === 0) {
@@ -80,8 +82,10 @@ groupSchema.statics.calculateBalances = function (transactions) {
 
     let balances = transactions.reduce((acc, t) => {
         t.amounts.forEach(({ user, amount }) => {
-            const userId = user._id ? user._id.toString() : user.toString();
-            acc[userId] = (acc[userId] || 0) + amount;
+            const username = typeof user === 'string' ? user : 
+                             (user.username ? user.username : user.toString());
+            
+            acc[username] = (acc[username] || 0) + amount;
         });
         return acc;
     }, {});
@@ -90,16 +94,9 @@ groupSchema.statics.calculateBalances = function (transactions) {
     const userCount = Object.keys(balances).length;
     const perPerson = total / userCount;
 
-    let debts = Object.entries(balances).map(([userId, amount]) => {
-        let userObj = transactions
-            .flatMap(t => t.amounts)
-            .find(a => {
-                const matchId = a.user._id ? a.user._id.toString() === userId : a.user.toString() === userId;
-                return matchId;
-            })?.user;
-
+    let debts = Object.entries(balances).map(([username, amount]) => {
         return {
-            user: userObj,
+            username,
             balance: amount - perPerson
         };
     });
@@ -116,16 +113,16 @@ groupSchema.statics.calculateBalances = function (transactions) {
         let amountToPay = Math.min(-debtor.balance, creditor.balance);
 
         transactionsToSettle.push({
-            from: debtor.user.username || debtor.user._id.toString(),
-            to: creditor.user.username || creditor.user._id.toString(),
+            from: debtor.username,
+            to: creditor.username,
             amount: amountToPay.toFixed(2)
         });
 
         debtor.balance += amountToPay;
         creditor.balance -= amountToPay;
 
-        if (debtor.balance === 0) i++;
-        if (creditor.balance === 0) j++;
+        if (Math.abs(debtor.balance) < 0.01) i++;
+        if (Math.abs(creditor.balance) < 0.01) j++;
     }
 
     return { transactionsToSettle };
@@ -133,7 +130,10 @@ groupSchema.statics.calculateBalances = function (transactions) {
 
 groupSchema.methods.topSpender = async function () {
     if (!this.transactions || this.transactions.length === 0) {
-        return null;
+        return {
+            username: "Nessuno",
+            amount: 0,
+        };
     }
 
     const transactions = await mongoose.model('Transaction').find({ _id: { $in: this.transactions } });
@@ -142,8 +142,8 @@ groupSchema.methods.topSpender = async function () {
 
     transactions.forEach(transaction => {
         transaction.amounts.forEach(({ user, amount }) => {
-            const userId = user.toString();
-            spending[userId] = (spending[userId] || 0) + amount;
+            const username = user;
+            spending[username] = (spending[username] || 0) + amount;
         });
     });
 
@@ -151,15 +151,11 @@ groupSchema.methods.topSpender = async function () {
         return null;
     }
 
-    // Trova l'ID dell'utente che ha speso di più
-    const topUserId = Object.keys(spending).reduce((a, b) => spending[a] > spending[b] ? a : b);
-    const topAmount = spending[topUserId];
-
-    // Trova il suo username
-    const topSpender = await mongoose.model('User').findById(topUserId, 'username');
+    const topUsername = Object.keys(spending).reduce((a, b) => spending[a] > spending[b] ? a : b);
+    const topAmount = spending[topUsername];
 
     return {
-        username: topSpender.username,
+        username: topUsername,
         amount: topAmount
     };
 };

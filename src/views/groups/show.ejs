@@ -64,7 +64,7 @@
                                     <i class="bi bi-trophy text-warning fs-4"></i>
                                 </div>
                                 <h3 class="mt-3 mb-0"><%= topSpender.username %></h3>
-                                <p class="mb-0 text-accent">€<%= topSpender.amount %></p>
+                                <p class="mb-0 text-accent">€ <%= topSpender.amount %></p>
                             </div>
                         </div>
                     </div>
@@ -72,7 +72,6 @@
             </div>
         </div>
 
-        <!-- Debts Matrix -->
         <div class="col-md-4">
             <div class="card debts-matrix h-100">
                 <div class="card-body">
@@ -119,7 +118,6 @@
         </div>
     </div>
 
-    <!-- Transactions History -->
     <div class="mt-5">
         <h4 class="card-title mb-4">Cronologia Transazioni</h4>
         <div class="transaction-timeline">
@@ -158,12 +156,16 @@
                         </div>
                     </div>
                     <div class="transaction-amounts">
-                            <% for (let a of t.amounts) { %>
-                                    <div class="transaction-amount-item">
-                                        <span><%= a.user.username %></span>
-                                        <span class="badge bg-primary">€<%= a.amount.toFixed(2) %></span>
-                                    </div>
-                            <% } %>
+                        <% for (let a of t.amounts) { %>
+                            <div class="transaction-amount-item">
+                                <% if (a.isInvited) { %>
+                                    <span><%= a.user %> (Invitato)</span>
+                                <% } else { %>
+                                    <span><%= a.user %></span>
+                                <% } %>
+                                <span class="badge bg-primary">€<%= a.amount.toFixed(2) %></span>
+                            </div>
+                        <% } %>
                     </div>
                 </div>
             <% } %>
