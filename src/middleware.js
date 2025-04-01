@@ -88,24 +88,22 @@ module.exports.validatePasswordStrength = (req, res, next) => {
 };
 
 module.exports.validateParticipants = (participants, invited, userId) => {
-    // Controllo numero minimo partecipanti
-    if (!participants && !invited || participants.length + invited.length < 2) {
+    const participantsArray = participants ? (Array.isArray(participants) ? [...participants] : [participants]) : [];
+    const invitedArray = invited ? (Array.isArray(invited) ? [...invited] : [invited]) : [];
+    
+    if (!participantsArray.includes(userId)) {
+        participantsArray.push(userId);
+    }
+    
+    const totalParticipants = participantsArray.length + invitedArray.length;
+    
+    if (totalParticipants < 2) {
         return { isValid: false, message: 'Devono essere presenti almeno 2 partecipanti!' };
     }
-
-    // Controllo presenza del proprietario nei partecipanti
-    const participantsArray = Array.isArray(participants) ? [...participants] : [participants];
-    const hasOwner = participantsArray.includes(userId.toString());
-
-    // Controllo duplicati
-    const participantsSet = new Set(participantsArray);
-    if (participantsSet.size !== participantsArray.length) {
-        return { isValid: false, message: 'Hai inserito lo stesso partecipante più volte!' };
-    }
-
+    
     return {
         isValid: true,
-        participants: hasOwner ? participantsArray : [...participantsArray, userId.toString()]
+        participants: participantsArray
     };
 };
 

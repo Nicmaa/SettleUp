@@ -39,16 +39,24 @@
                     </h4>
                 </div>
                   <div class="member-avatars">
-                    <% group.participants.slice(0, 5).forEach(function(member) { %>
-                      <div class="member-avatar" title="<%= member.username %>">
-                        <%= member.username.charAt(0).toUpperCase() %>
-                      </div>
-                    <% }); %>
+                    <% if(group.participants) {
+                        group.participants.slice(0, 5).forEach(function(member) { %>
+                          <div class="member-avatar" title="<%= member.username %>">
+                            <%= member.username.charAt(0).toUpperCase() %>
+                          </div>
+                      <% }); 
+                    } %>
                     
                     <% if(group.participantsCount > 5) { %>
                       <div class="member-avatar" title="Altri membri">
                         +<%= group.participantsCount - 5 %>
                       </div>
+                    <% } else { %>
+                      <% group.invitedUsers.slice(0, 5).forEach(function(member) { %>
+                        <div class="member-avatar" title="<%= member.name %>">
+                          <%= member.name.charAt(0).toUpperCase() %>
+                        </div>
+                      <% }); %>
                     <% } %>
                   </div>
                   <div class="d-flex justify-content-between mt-4">
