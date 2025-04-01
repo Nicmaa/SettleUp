@@ -38,7 +38,7 @@ groupSchema.virtual('transactionCount').get(function () {
 });
 
 groupSchema.virtual('participantsCount').get(function () {
-    return this.participants.length;
+    return this.participants.length + this.invitedUsers.length;
 });
 
 groupSchema.virtual('totalSpent').get(function () {
