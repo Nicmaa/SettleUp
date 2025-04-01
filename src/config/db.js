@@ -1,8 +1,12 @@
 const mongoose = require('mongoose');
+if(process.env.NODE_ENV !== "production"){
+    require('dotenv').config();
+}
+const dbUrl = 'mongodb://127.0.0.1:27017/SettleUp'; //process.env.DB_URL
 
 const connectDB = async () => {
     try {
-        await mongoose.connect('mongodb://127.0.0.1:27017/SettleUp');
+        await mongoose.connect(dbUrl);
         console.log('MongoDB connesso');
     } catch (err) {
         console.error('Errore nella connessione MongoDB:', err);

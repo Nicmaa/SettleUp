@@ -1,3 +1,6 @@
+if(process.env.NODE_ENV !== "production"){
+    require('dotenv').config();
+}
 const express = require('express');
 const ExpressError = require('./utilities/expressError');
 
@@ -31,5 +34,5 @@ app.use((err, req, res, next) => {
     res.status(status).render('error', { status, message });
 })
 
-const PORT = 3000;
+const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log(`Server avviato sulla porta ${PORT}`));
