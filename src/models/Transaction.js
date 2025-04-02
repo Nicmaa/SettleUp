@@ -7,7 +7,7 @@ const transactionSchema = new Schema({
     description: { type: String, trim: true, maxlength: [100, 'La descrizione deve avere meno di 100 caratteri'] },
     category: {
         type: String,
-        enum: ['Cibo', 'Trasporti', 'Svago', 'Vestiti', 'Lavoro', 'Casa', 'Salute', 'Altro'],
+        enum: ['Cibo', 'Trasporti', 'Svago', 'Abbigliamento', 'Lavoro', 'Casa', 'Salute', 'Altro'],
         default: 'Altro'
     },
     amounts: [

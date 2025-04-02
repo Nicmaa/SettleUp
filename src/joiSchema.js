@@ -11,7 +11,7 @@ const joiSanitizeExtension = (joi) => ({
     xss: {
       validate(value, helpers) {
         const cleanValue = sanitizeHtml(value, {
-          allowedTags: [], 
+          allowedTags: [],
           allowedAttributes: {}
         });
         if (cleanValue !== value) {
@@ -26,30 +26,37 @@ const joiSanitizeExtension = (joi) => ({
 const extendedJoi = Joi.extend(joiSanitizeExtension);
 
 module.exports.groupSchema = extendedJoi.object({
-    name: extendedJoi.string().min(3).max(50).required(),
-    description: extendedJoi.string().max(255).allow(null, ''),
-    image: extendedJoi.string().uri().allow(null, '').default('/images/default_group.jpg'),
-    owner: extendedJoi.string().hex().length(24),
-    participants: extendedJoi.array().items(extendedJoi.string().hex().length(24)),
-    transactions: extendedJoi.array().items(extendedJoi.string().hex().length(24)),
-    balance: extendedJoi.array().items(extendedJoi.object({ from: extendedJoi.string(), to: extendedJoi.string(), amount: extendedJoi.number() })),
-    invitedEmails: extendedJoi.array().items(extendedJoi.string().email({ minDomainSegments: 2, tlds: { allow: ['com', 'net'] } }).allow('')),
-    invitedNames: extendedJoi.array().items(extendedJoi.string().allow('')),
-    createdAt: Joi.date().default(Date.now),
-    updatedAt: Joi.date().default(Date.now)
+  name: extendedJoi.string().min(3).max(50).required().xss(),
+  description: extendedJoi.string().max(255).allow(null, '').xss(),
+  image: extendedJoi.string().uri().allow(null, ''),
+  participants: extendedJoi.array().items(extendedJoi.string().hex().length(24)).default([]),
+  invitedEmails: extendedJoi.array().items(extendedJoi.string().email({ minDomainSegments: 2 }).allow('')).default([]),
+  invitedNames: extendedJoi.array().items(extendedJoi.string().allow('').xss()).default([])
 }).required();
 
 module.exports.transactionSchema = extendedJoi.object({
-    description: extendedJoi.string().max(100).allow(null, ''),
-    category: extendedJoi.string(),
-    amounts: extendedJoi.array().items(
-        extendedJoi.object({
-            user: extendedJoi.alternatives().try(
-                extendedJoi.string(),
-                extendedJoi.object()
-            ).required(),
-            amount: extendedJoi.number().min(0).required(),
-            isInvited: extendedJoi.boolean().default(false)
-        })
-    ).min(1).required()
+  description: extendedJoi.string().max(100).allow(null, '').xss(),
+  category: extendedJoi.string().valid('Cibo', 'Trasporti', 'Svago', 'Abbigliamento', 'Lavoro', 'Casa', 'Salute', 'Altro').default('Altro'),
+  amounts: extendedJoi.array().items(
+    extendedJoi.object({
+      user: extendedJoi.string().required(),
+      amount: extendedJoi.number().min(0).required(),
+      isInvited: extendedJoi.boolean().default(false)
+    })
+  ).min(1).required()
 }).required();
+
+module.exports.userSchema = extendedJoi.object({
+  email: Joi.string().email().required(),
+  firstName: extendedJoi.string().trim().max(50).allow(null, '').xss(),
+  lastName: extendedJoi.string().trim().max(50).allow(null, '').xss(),
+  bio: extendedJoi.string().max(150).allow(null, '').xss(),
+  avatar: Joi.string().uri().optional(),
+  settings: Joi.object({
+    notifications: Joi.object({
+      email: Joi.boolean().default(true),
+      newTransaction: Joi.boolean().default(true)
+    }),
+    theme: Joi.string().valid('light', 'dark', 'system').default('system')
+  }).optional()
+}).required();;

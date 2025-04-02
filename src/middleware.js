@@ -1,7 +1,7 @@
 const Group = require('./models/Group');
 const catchAsync = require('./utilities/catchAsync');
 const ExpressError = require('./utilities/expressError');
-const { groupSchema, transactionSchema } = require('./joiSchema.js');
+const { groupSchema, transactionSchema, userSchema } = require('./joiSchema.js');
 
 // Middleware per controllare se l'utente è autenticato
 module.exports.isLoggedIn = (req, res, next) => {
@@ -147,6 +147,12 @@ module.exports.validateTransaction = (req, res, next) => {
         });
     }
 
+    const hasPositiveAmount = amounts.some(item => item.amount > 0);
+    if (!hasPositiveAmount) {
+        req.flash('error', 'Deve esserci almeno un importo maggiore di 0!');
+        return res.redirect(`/transactions/new/${req.params.id}`);
+    }
+
     const transformedData = {
         description: req.body.description || '',
         category: req.body.category || 'Altro',
@@ -159,6 +165,16 @@ module.exports.validateTransaction = (req, res, next) => {
         throw new ExpressError(msg, 400);
     } else {
         req.body = transformedData;
+        next();
+    }
+};
+
+module.exports.validateUser = (req, res, next) => {
+    const { error } = userSchema.validate(req.body);
+    if (error) {
+        const msg = error.details.map(el => el.message).join(',');
+        throw new ExpressError(msg, 400);
+    } else {
         next();
     }
 };
