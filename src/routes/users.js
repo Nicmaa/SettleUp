@@ -5,7 +5,7 @@ const passport = require('passport');
 const user = require('../controllers/userController');
 
 const catchAsync = require('../utilities/catchAsync');
-const { isLoggedIn, storeReturnTo, validatePasswordStrength } = require('../middleware');
+const { isLoggedIn, storeReturnTo, validatePasswordStrength, validateUser } = require('../middleware');
 
 router.post('/register', validatePasswordStrength, catchAsync(user.register));
 
@@ -15,7 +15,7 @@ router.post('/logout', isLoggedIn, user.logout);
 
 router.route('/profile')
     .get(isLoggedIn, catchAsync(user.profile))
-    .put(isLoggedIn, catchAsync(user.editProfile));
+    .put(isLoggedIn, validateUser, catchAsync(user.editProfile));
 // Manca il .delete
 
 router.get('/profile/edit', isLoggedIn, catchAsync(user.renderEditProfile));
