@@ -1,68 +1,93 @@
 <% layout('./layouts/layout') -%>
 
 <div class="row">
-    <div class="col-md-6 offset-md-3 my-5">
-        <h3 class="text-center">Crea un nuovo gruppo!</h3>
-        <form action="/groups" method="POST" novalidate class="validated-form">
-            <div class="form-group mb-3">
-                <label for="name">Titolo</label>
-                <input type="text" class="form-control" id="name" name="name" required>
-                <div class="valid-feedback">
-                    Tutto bene!
-                </div>
-                <div class="invalid-feedback">
-                    Perfavore scrivi un titolo!
-                </div>
-            </div>
-
-            <div class="form-group mb-3">
-                <label for="description">Descrizione</label>
-                <textarea class="form-control" name="description" id="description" rows="3"></textarea>
-            </div>
-            <div class="form-group mb-3">
-                <label for="image">URL Immagine</label>
-                <input type="url" class="form-control" id="image" name="image">
-            </div>
-
-            <div class="form-group mb-3">
-                <h5>Aggiungi Amici al Gruppo</h5>
-                <div id="friendsList" class="mb-3">
-                    <% if(user && user.friends && user.friends.length > 0) { %>
-                        <% for(let friend of user.friends) { %>
-                            <div class="form-check mb-2">
-                                <input class="form-check-input" type="checkbox" name="participants[]" value="<%= friend._id %>" id="friend-<%= friend._id %>">
-                                <label class="form-check-label" for="friend-<%= friend._id %>">
-                                    <%= friend.username || friend.email %>
-                                </label>
-                            </div>
-                        <% } %>
-                    <% } else { %>
-                        <p>Non hai ancora amici. Aggiungi amici per invitarli ai tuoi gruppi.</p>
-                    <% } %>
+    <div class="col-md-6 offset-md-3 mb-5">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h3 class="m-0">Nuovo Gruppo</h3>
+            <button type="submit" form="groupForm" class="btn quick-submit-btn">
+                <i class="bi bi-check2-circle me-1"></i> Salva
+            </button>
+        </div>
+        
+        <form id="groupForm" class="validated-form" method="POST" action="/groups" novalidate>
+            <div class="custom-card mb-4">
+                <div class="custom-card-header">Informazioni Gruppo</div>
+                <div class="custom-card-body">
+                    <div class="mb-3">
+                        <label for="name" class="form-label">Titolo</label>
+                        <input type="text" class="form-control custom-input" id="name" name="name" required placeholder="Nome del gruppo">
+                        <div class="valid-feedback">
+                            Tutto bene!
+                        </div>
+                        <div class="invalid-feedback">
+                            Perfavore scrivi un titolo!
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="description" class="form-label">Descrizione (opzionale)</label>
+                        <textarea class="form-control custom-input" id="description" name="description" rows="3" placeholder="Inserisci una descrizione del gruppo..."></textarea>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="image" class="form-label">URL Immagine (opzionale)</label>
+                        <input type="url" class="form-control custom-input" id="image" name="image" placeholder="https://...">
+                    </div>
                 </div>
             </div>
 
-            <div class="form-group mb-4">
-                <h5>Invita Altri Partecipanti</h5>
-                <div id="invitedList">
-                    <div class="invited-user-row mb-2">
-                        <div class="row">
-                            <div class="col-md-6">
-                                <input type="email" class="form-control" name="invitedEmails[]" placeholder="Email">
-                            </div>
-                            <div class="col-md-5">
-                                <input type="text" class="form-control" name="invitedNames[]" placeholder="Nome visualizzato">
-                            </div>
-                            <div class="col-md-1">
-                                <button type="button" class="btn btn-outline-danger remove-invited">X</button>
-                            </div>
+            <% if(user && user.friends && user.friends.length > 0) { %>
+                <div class="custom-card mb-4">
+                    <div class="custom-card-header">Aggiungi Amici</div>
+                    <div class="custom-card-body">
+                        <div id="friendsList">
+                            <% for(let friend of user.friends) { %>
+                                <div class="form-check mb-2 d-flex align-items-center">
+                                    <input class="form-check-input me-2" type="checkbox" name="participants[]" value="<%= friend._id %>" id="friend-<%= friend._id %>">
+                                    <label class="form-check-label w-100" for="friend-<%= friend._id %>">
+                                        <%= friend.username || friend.email %>
+                                    </label>
+                                </div>
+                            <% } %>
                         </div>
                     </div>
                 </div>
-                <button id="addInvited" type="button" class="btn btn-outline mt-2">+ Invita Partecipante</button>
+            <% } else { %>
+                <div class="custom-card mb-4">
+                    <div class="custom-card-header">Aggiungi Amici</div>
+                    <div class="custom-card-body">
+                        <p class="mb-0">Non hai ancora amici. Aggiungi amici per invitarli ai tuoi gruppi.</p>
+                    </div>
+                </div>
+            <% } %>
+
+            <div class="custom-card mb-4">
+                <div class="custom-card-header">Invita Altri Partecipanti</div>
+                <div class="custom-card-body">
+                    <div id="invitedList">
+                        <div class="invited-user-row mb-3">
+                            <div class="row">
+                                <div class="col-md-6 mb-2 mb-md-0">
+                                    <input type="email" class="form-control custom-input" name="invitedEmails[]" placeholder="Email">
+                                </div>
+                                <div class="col-md-5 mb-2 mb-md-0">
+                                    <input type="text" class="form-control custom-input" name="invitedNames[]" placeholder="Nome visualizzato">
+                                </div>
+                                <div class="col-md-1 d-flex justify-content-end">
+                                    <button type="button" class="btn btn-outline-danger remove-invited">
+                                        <i class="bi bi-x"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <button id="addInvited" type="button" class="btn btn-sm quick-submit-btn mt-2">
+                        <i class="bi bi-plus-circle me-1"></i> Invita Partecipante
+                    </button>
+                </div>
             </div>
             
-            <button type="submit" class="button btn-lg w-100">Crea Gruppo</button>
+            <button type="submit" class="btn custom-button w-100"><i class="bi bi-people-fill me-2"></i>Crea Gruppo</button>
         </form>
     </div>
 </div>
@@ -76,17 +101,19 @@ document.addEventListener("DOMContentLoaded", () => {
         event.preventDefault();
         
         const newRow = document.createElement("div");
-        newRow.className = "invited-user-row mb-2";
+        newRow.className = "invited-user-row mb-3";
         newRow.innerHTML = `
             <div class="row">
-                <div class="col-md-6">
-                    <input type="email" class="form-control" name="invitedEmails[]" placeholder="Email">
+                <div class="col-md-6 mb-2 mb-md-0">
+                    <input type="email" class="form-control custom-input" name="invitedEmails[]" placeholder="Email">
                 </div>
-                <div class="col-md-5">
-                    <input type="text" class="form-control" name="invitedNames[]" placeholder="Nome visualizzato">
+                <div class="col-md-5 mb-2 mb-md-0">
+                    <input type="text" class="form-control custom-input" name="invitedNames[]" placeholder="Nome visualizzato">
                 </div>
-                <div class="col-md-1">
-                    <button type="button" class="btn btn-outline-danger remove-invited">X</button>
+                <div class="col-md-1 d-flex justify-content-end">
+                    <button type="button" class="btn btn-outline-danger remove-invited">
+                        <i class="bi bi-x"></i>
+                    </button>
                 </div>
             </div>
         `;

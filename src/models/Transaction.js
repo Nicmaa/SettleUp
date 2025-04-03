@@ -35,7 +35,7 @@ transactionSchema.statics.refreshBalance = async function (groupId) {
 
     if (!group) throw new ExpressError(`Gruppo con ID ${groupId} non trovato`, 404);
 
-    const { transactionsToSettle } = Group.calculateBalances(group.transactions);
+    const { transactionsToSettle } = Group.calculateBalances(group.transactions, group.participantsCount);
     group.balance = transactionsToSettle;
 
     await group.save();

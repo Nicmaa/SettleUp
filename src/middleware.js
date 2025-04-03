@@ -87,23 +87,38 @@ module.exports.validatePasswordStrength = (req, res, next) => {
     next();
 };
 
-module.exports.validateParticipants = (participants, invited, userId) => {
-    const participantsArray = participants ? (Array.isArray(participants) ? [...participants] : [participants]) : [];
-    const invitedArray = invited ? (Array.isArray(invited) ? [...invited] : [invited]) : [];
-    
-    if (!participantsArray.includes(userId)) {
-        participantsArray.push(userId);
+module.exports.validateParticipants = (participants, currentInvited = [], removeInvited = [], invitedNames = [], invitedEmails = [], userId) => {
+    // Set per i partecipanti per evitare duplicati
+    const participantsSet = new Set(Array.isArray(participants) ? participants : participants ? [participants] : []);
+    participantsSet.add(userId); // L'owner deve sempre essere nei partecipanti
+
+    // Se siamo in modifica, rimuoviamo gli invitati indicati in `removeInvited`
+    let invitedUsers = Array.isArray(currentInvited) ? [...currentInvited] : [];
+    if (Array.isArray(removeInvited) && removeInvited.length > 0) {
+        invitedUsers = invitedUsers.filter(invite => !removeInvited.includes(invite.email));
     }
-    
-    const totalParticipants = participantsArray.length + invitedArray.length;
-    
+
+    // Aggiunta dei nuovi invitati
+    if (Array.isArray(invitedEmails) && invitedEmails.length > 0) {
+        for (let i = 0; i < invitedEmails.length; i++) {
+            const email = invitedEmails[i]?.trim();
+            if (email) {
+                const name = invitedNames?.[i]?.trim() || `Invitato ${i + 1}`;
+                invitedUsers.push({ email, name });
+            }
+        }
+    }
+
+    // Validazione: almeno 2 partecipanti totali
+    const totalParticipants = participantsSet.size + invitedUsers.length;
     if (totalParticipants < 2) {
         return { isValid: false, message: 'Devono essere presenti almeno 2 partecipanti!' };
     }
-    
+
     return {
         isValid: true,
-        participants: participantsArray
+        participants: Array.from(participantsSet),
+        invited: invitedUsers
     };
 };
 
@@ -147,10 +162,13 @@ module.exports.validateTransaction = (req, res, next) => {
         });
     }
 
-    const hasPositiveAmount = amounts.some(item => item.amount > 0);
-    if (!hasPositiveAmount) {
+    if (!amounts || !amounts.some(item => item.amount > 0)) {
+        let redirectUrl = `/transactions/${req.params.id}/edit`;
+        if (req.originalUrl.includes('/new')) {
+            redirectUrl = `/transactions/new/${req.params.id}`;
+        }
         req.flash('error', 'Deve esserci almeno un importo maggiore di 0!');
-        return res.redirect(`/transactions/new/${req.params.id}`);
+        return res.redirect(redirectUrl);
     }
 
     const transformedData = {

@@ -31,7 +31,9 @@ module.exports.groupSchema = extendedJoi.object({
   image: extendedJoi.string().uri().allow(null, ''),
   participants: extendedJoi.array().items(extendedJoi.string().hex().length(24)).default([]),
   invitedEmails: extendedJoi.array().items(extendedJoi.string().email({ minDomainSegments: 2 }).allow('')).default([]),
-  invitedNames: extendedJoi.array().items(extendedJoi.string().allow('').xss()).default([])
+  invitedNames: extendedJoi.array().items(extendedJoi.string().allow('').xss()).default([]),
+  currentInvited: extendedJoi.array(),
+  removeInvited: extendedJoi.array(),
 }).required();
 
 module.exports.transactionSchema = extendedJoi.object({
@@ -51,7 +53,7 @@ module.exports.userSchema = extendedJoi.object({
   firstName: extendedJoi.string().trim().max(50).allow(null, '').xss(),
   lastName: extendedJoi.string().trim().max(50).allow(null, '').xss(),
   bio: extendedJoi.string().max(150).allow(null, '').xss(),
-  avatar: Joi.string().uri().optional(),
+  avatar: Joi.string().uri().optional().allow(null, '').default('/images/default_avatar.jpg'),
   settings: Joi.object({
     notifications: Joi.object({
       email: Joi.boolean().default(true),

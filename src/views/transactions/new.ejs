@@ -1,38 +1,33 @@
 <% layout('./layouts/layout') -%>
 
 <div class="row">
-    <div class="col-md-6 offset-md-3 my-5">
-        <h3 class="text-center mb-5">Nuova Transazione</h3>
-        <form class="form-inline validated-form" method="post" action="/transactions/new/<%= group._id %>" novalidate>
-            <div class="mb-3">
-                <label for="description" class="form-label">Descrizione (opzionale)</label>
-                <textarea class="form-control" id="description" name="description"></textarea>
-            </div>
-            <div class="mb-3">
-                <label for="category" class="form-label">Categoria</label>
-                <select class="form-control" id="category" name="category">
-                    <% for(cat of categories) { %>
-                        <option value="<%= cat %>"><%= cat %></option>
-                    <% } %>
-                </select>
-            </div>
-            
-            <div class="mb-3">
-                <h5 class="mb-3">Partecipanti</h5>
-                
+    <div class="col-md-6 offset-md-3 mb-5">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h3 class="m-0">Nuova Transazione</h3>
+            <button type="submit" form="transactionForm" class="custom-button">
+                <i class="bi bi-check2-circle me-1"></i> Salva
+            </button>
+        </div>
+        
+        <div class="compact-total-counter mb-4">
+            <div class="fw-bold">Totale: <span id="totalAmount">€0.00</span></div>
+        </div>
+        
+        <form id="transactionForm" class="validated-form" method="post" action="/transactions/new/<%= group._id %>" novalidate>
+            <div class="mb-4">
                 <% if(group.participants && group.participants.length > 0) { %>
-                    <div class="card mb-3">
-                        <div class="card-header bg-light">Membri del gruppo</div>
-                        <div class="card-body p-3">
+                    <div class="custom-card mb-4">
+                        <div class="custom-card-header">Membri del gruppo</div>
+                        <div class="custom-card-body">
                             <% for(let p of group.participants) { %>
-                                <div class="row mb-2">
+                                <div class="row mb-3">
                                     <div class="col">
-                                        <input type="text" class="form-control" name="user[]" value="<%= p.username %>" readonly>
+                                        <input type="text" class="form-control custom-input" name="user[]" value="<%= p.username %>" readonly>
                                     </div>
                                     <div class="col-4">
                                         <div class="input-group">
-                                            <span class="input-group-text">€</span>
-                                            <input type="number" min="0" step="0.01" class="form-control amount-input" name="amount[]">
+                                            <span class="input-group-text custom-input-group">€</span>
+                                            <input type="number" min="0" step="0.01" class="form-control custom-input amount-input no-spinner" name="amount[]" placeholder="0.00">
                                         </div>
                                     </div>
                                 </div>
@@ -42,24 +37,24 @@
                 <% } %>
                 
                 <% if(group.invitedUsers && group.invitedUsers.length > 0) { %>
-                    <div class="card">
-                        <div class="card-header bg-light">Utenti invitati</div>
-                        <div class="card-body p-3">
+                    <div class="custom-card">
+                        <div class="custom-card-header">Utenti invitati</div>
+                        <div class="custom-card-body">
                             <% for(let i = 0; i < group.invitedUsers.length; i++) { %>
-                                <div class="row mb-2">
+                                <div class="row mb-3">
                                     <div class="col">
                                         <div class="input-group">
-                                            <input type="text" class="form-control" name="invitedUsername[]" 
+                                            <input type="text" class="form-control custom-input" name="invitedUsername[]" 
                                                 value="<%= group.invitedUsers[i].name %>" readonly>
-                                            <span class="input-group-text" title="Utente invitato">
+                                            <span class="input-group-text custom-input-group" title="Utente invitato">
                                                 <i class="bi bi-envelope"></i>
                                             </span>
                                         </div>
                                     </div>
                                     <div class="col-4">
                                         <div class="input-group">
-                                            <span class="input-group-text">€</span>
-                                            <input type="number" min="0" step="0.01" class="form-control amount-input" name="invitedAmount[]">
+                                            <span class="input-group-text custom-input-group">€</span>
+                                            <input type="number" min="0" step="0.01" class="form-control custom-input amount-input no-spinner" name="invitedAmount[]" placeholder="0.00">
                                         </div>
                                     </div>
                                 </div>
@@ -69,11 +64,44 @@
                 <% } %>
             </div>
             
-            <div class="d-flex justify-content-between align-items-center mt-4">
-                <div class="fw-bold">Totale: <span id="totalAmount">€0.00</span></div>
+            <div class="mb-4">
+                <label class="form-label">Categoria</label>
+                <div class="category-grid-symmetric">
+                    <% 
+                    const categoryEmojis = {
+                        "Cibo": "🍕",
+                        "Trasporti": "🚌",
+                        "Svago": "🎮",
+                        "Lavoro": "⚒️",
+                        "Abbigliamento": "👕",
+                        "Casa": "🏠",
+                        "Salute": "🩺",
+                        "Altro": "🔍"
+                    };
+                    
+                    for(let i = 0; i < categories.length; i++) { 
+                        const cat = categories[i];
+                        const emoji = categoryEmojis[cat] || "📌";
+                        const isAltro = cat === "Altro";
+                    %>
+                        <div class="category-item">
+                            <input type="radio" name="category" id="cat-<%= cat %>" value="<%= cat %>" 
+                                class="category-input" <%= isAltro ? 'checked' : '' %>>
+                            <label for="cat-<%= cat %>" class="category-box">
+                                <span class="category-emoji"><%= emoji %></span>
+                                <span class="category-name"><%= cat %></span>
+                            </label>
+                        </div>
+                    <% } %>
+                </div>
             </div>
             
-            <button type="submit" class="btn btn-success mt-3 w-100">Invia</button>
+            <div class="mb-4">
+                <label for="description" class="form-label">Descrizione (opzionale)</label>
+                <textarea class="form-control custom-input" id="description" name="description" rows="3" placeholder="Inserisci una descrizione della transazione..."></textarea>
+            </div>
+
+            <button type="submit" class="btn custom-button w-100">Salva</button>
         </form>
     </div>
 </div>
@@ -82,6 +110,7 @@
 document.addEventListener('DOMContentLoaded', function() {
     const amountInputs = document.querySelectorAll('.amount-input');
     const totalAmountSpan = document.getElementById('totalAmount');
+    const totalCounter = document.querySelector('.compact-total-counter');
     
     function calculateTotal() {
         let total = 0;
@@ -89,7 +118,17 @@ document.addEventListener('DOMContentLoaded', function() {
             const value = parseFloat(input.value) || 0;
             total += value;
         });
+        
+        // Aggiorna il testo
         totalAmountSpan.textContent = `€${total.toFixed(2)}`;
+        
+        totalCounter.classList.add('pulse');
+        
+        // Rimuovi la classe dopo che l'animazione è completa
+        setTimeout(() => {
+            totalCounter.classList.remove('pulse');
+        }, 500);
+        
         return total;
     }
     

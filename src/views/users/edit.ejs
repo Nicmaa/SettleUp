@@ -1,51 +1,123 @@
 <% layout('./layouts/layout') -%>
 
-<div class="container profile-container m-auto my-5">
-    <div class="profile-header mb-4">
-        <h1 class="edit-title mb-4">Modifica Profilo</h1>
+<div class="row">
+    <div class="col-md-8 offset-md-2 mb-5">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h3 class="m-0">Modifica Profilo</h3>
+            <button type="submit" form="profileForm" class="btn quick-submit-btn">
+                <i class="bi bi-check2-circle me-1"></i> Salva
+            </button>
+        </div>
         
-        <form action="/users/profile?_method=PUT" method="POST" novalidate class="validated-form">
+        <form id="profileForm" class="validated-form" method="POST" action="/users/profile?_method=PUT" novalidate>
             <div class="row">
                 <div class="col-md-4 mb-4">
-                    <div class="text-center">
-                        <div class="avatar-upload-container">
-                            <img src="<%= user.avatar %>" alt="Profile Picture" class="profile-avatar mb-3">
+                    <div class="custom-card">
+                        <div class="custom-card-header">Immagine Profilo</div>
+                        <div class="custom-card-body text-center">
+                            <div class="avatar-upload-container mb-3">
+                                <img src="<%= user.avatar %>" alt="Immagine Profilo" class="profile-avatar">
+                            </div>
+                            <div class="input-group mb-3">
+                                <input type="text" class="form-control custom-input" id="avatarUrl" name="avatar" value="<%= user.avatar === '/images/default_avatar.jpg' ? "" : user.avatar %>" placeholder="URL immagine profilo">
+                                <button class="btn quick-submit-btn" type="button" id="updateAvatarBtn">
+                                    <i class="bi bi-arrow-repeat"></i>
+                                </button>
+                                <button class="btn btn-outline-danger" type="button" id="clearAvatarBtn">
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                            </div>
+                            <small>Inserisci l'URL di un'immagine</small>
                         </div>
                     </div>
                 </div>
                 
                 <div class="col-md-8">
-                    <div class="edit-form">
-                        <div class="mb-3">
-                            <div class="row">
-                                <div class="col">
-                                    <label for="firstName" class="form-label">Nome</label>
-                                    <input type="text" class="form-control" id="firstName" name="firstName" value="<%= user.firstName || "" %>">
+                    <div class="custom-card mb-4">
+                        <div class="custom-card-header">Informazioni Personali</div>
+                        <div class="custom-card-body">
+                            <div class="mb-3">
+                                <div class="row">
+                                    <div class="col-md-6 mb-3 mb-md-0">
+                                        <label for="firstName" class="form-label">Nome</label>
+                                        <input type="text" class="form-control custom-input" id="firstName" name="firstName" value="<%= user.firstName || "" %>" placeholder="Il tuo nome">
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label for="lastName" class="form-label">Cognome</label>
+                                        <input type="text" class="form-control custom-input" id="lastName" name="lastName" value="<%= user.lastName || "" %>" placeholder="Il tuo cognome">
+                                    </div>
                                 </div>
-                                <div class="col">
-                                    <label for="lastName" class="form-label">Cognome</label>
-                                    <input type="text" class="form-control" id="lastName" name="lastName" value="<%= user.lastName || "" %>">
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="email" class="form-label">Email</label>
+                                <input type="email" class="form-control custom-input" id="email" name="email" value="<%= user.email %>" placeholder="La tua email">
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="custom-card mb-4">
+                        <div class="custom-card-header">Su di te</div>
+                        <div class="custom-card-body">
+                            <div class="mb-2">
+                                <label for="bio" class="form-label">Bio</label>
+                                <textarea class="form-control custom-input" id="bio" name="bio" rows="4" placeholder="Raccontaci qualcosa di te..."><%= user.bio || "" %></textarea>
+                                <div class="d-flex justify-content-between mt-2">
+                                    <small>Racconta qualcosa di te in massimo 150 caratteri</small>
+                                    <small id="charCount" class="text-end">0/150</small>
                                 </div>
                             </div>
                         </div>
-                        
-                        <div class="mb-3">
-                            <label for="bio" class="form-label">Bio</label>
-                            <textarea class="form-control" id="bio" name="bio" rows="4"><%= user.bio || "" %></textarea>
-                            <div>Racconta qualcosa di te in massimo 150 caratteri</div>
-                        </div>
-                        
-                        <div class="mb-3">
-                            <label for="email" class="form-label">Email</label>
-                            <input type="email" class="form-control" id="email" name="email" value="<%= user.email %>">
-                        </div>
-                        
-                        <button type="submit" class="btn btn-primary">
-                            <i class="fas fa-save me-2"></i>Salva modifiche
-                        </button>
+                    </div>
+                    
+                    <div class="d-flex gap-3">
+                        <button type="submit" class="btn custom-button flex-grow-1"><i class="bi bi-save me-2"></i>Salva Modifiche</button>
+                        <a href="/users/profile" class="btn btn-outline-secondary"><i class="bi bi-x-circle me-1"></i>Annulla</a>
                     </div>
                 </div>
             </div>
         </form>
     </div>
 </div>
+
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    // Gestione conteggio caratteri bio
+    const bioTextarea = document.getElementById('bio');
+    const charCount = document.getElementById('charCount');
+    
+    function updateCharCount() {
+        const currentLength = bioTextarea.value.length;
+        charCount.textContent = `${currentLength}/150`;
+        
+        if (currentLength > 150) {
+            charCount.classList.add('text-danger');
+        } else {
+            charCount.classList.remove('text-danger');
+        }
+    }
+    
+    updateCharCount();
+    bioTextarea.addEventListener('input', updateCharCount);
+    
+    // Gestione avatar
+    const avatarUrl = document.getElementById('avatarUrl');
+    const avatarImg = document.querySelector('.profile-avatar');
+    const updateAvatarBtn = document.getElementById('updateAvatarBtn');
+    const clearAvatarBtn = document.getElementById('clearAvatarBtn');
+    
+    // Aggiorna l'anteprima dell'avatar
+    updateAvatarBtn.addEventListener('click', function() {
+        const newUrl = avatarUrl.value.trim();
+        if (newUrl) {
+            avatarImg.src = newUrl;
+        }
+    });
+    
+    // Cancella completamente l'URL dell'avatar
+    clearAvatarBtn.addEventListener('click', function() {
+        avatarUrl.value = '';
+        avatarImg.src = '/images/default_avatar.jpg';
+    });
+});
+</script>

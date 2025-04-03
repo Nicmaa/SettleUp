@@ -51,7 +51,7 @@ module.exports.editProfile = async (req, res) => {
 
     await User.findByIdAndUpdate(req.user._id, {
         email,
-        avatar,
+        avatar: avatar || '/images/default_avatar.jpg',
         bio,
         firstName,
         lastName,

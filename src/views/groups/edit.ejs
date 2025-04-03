@@ -1,96 +1,123 @@
 <% layout('./layouts/layout') -%>
 
 <div class="row">
-    <div class="col-md-6 offset-md-3 my-5">
-        <h3 class="text-center">Modifica gruppo</h3>
-        <form action="/groups/<%= group._id %>?_method=PUT" method="POST" novalidate class="validated-form">
-            <div class="form-group mb-3">
-                <label for="name">Titolo</label>
-                <input type="text" class="form-control" id="name" name="name" value="<%= group.name %>" required>
-                <div class="valid-feedback">
-                    Tutto bene!
-                </div>
-                <div class="invalid-feedback">
-                    Perfavore scrivi un titolo!
+    <div class="col-md-6 offset-md-3 mb-5">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h3 class="m-0">Modifica Gruppo</h3>
+            <button type="submit" form="groupForm" class="btn quick-submit-btn">
+                <i class="bi bi-check2-circle me-1"></i> Salva
+            </button>
+        </div>
+        
+        <form id="groupForm" class="validated-form" method="POST" action="/groups/<%= group._id %>?_method=PUT" novalidate>
+            <div class="custom-card mb-4">
+                <div class="custom-card-header">Informazioni Gruppo</div>
+                <div class="custom-card-body">
+                    <div class="mb-3">
+                        <label for="name" class="form-label">Titolo</label>
+                        <input type="text" class="form-control custom-input" id="name" name="name" required value="<%= group.name %>" placeholder="Nome del gruppo">
+                        <div class="valid-feedback">
+                            Tutto bene!
+                        </div>
+                        <div class="invalid-feedback">
+                            Perfavore scrivi un titolo!
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="description" class="form-label">Descrizione (opzionale)</label>
+                        <textarea class="form-control custom-input" id="description" name="description" rows="3" placeholder="Inserisci una descrizione del gruppo..."><%= group.description %></textarea>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="image" class="form-label">URL Immagine (opzionale)</label>
+                        <input type="url" class="form-control custom-input" id="image" name="image" value="<%= group.image === "/images/default_group.jpg" ? "" : group.image %>" placeholder="https://...">
+                    </div>
                 </div>
             </div>
 
-            <div class="form-group mb-3">
-                <label for="description">Descrizione</label>
-                <textarea class="form-control" name="description" id="description" rows="3"><%= group.description %></textarea>
-            </div>
-            <div class="form-group mb-3">
-                <label for="image">URL Immagine</label>
-                <input type="url" class="form-control" id="image" name="image" value="<%= group.image %>">
-            </div>
+            <% if(user && user.friends && user.friends.length > 0) { %>
+                <div class="custom-card mb-4">
+                    <div class="custom-card-header">Gestisci Partecipanti</div>
+                    <div class="custom-card-body">
+                        <div id="friendsList">
+                            <% for(let friend of user.friends) { %>
+                                <div class="form-check mb-2 d-flex align-items-center">
+                                    <input class="form-check-input me-2" type="checkbox" name="participants[]" 
+                                        value="<%= friend._id %>" id="friend-<%= friend._id %>"
+                                        <% if(group.participants.some(p => p._id.equals(friend._id))) { %> checked <% } %>>
+                                    <label class="form-check-label w-100" for="friend-<%= friend._id %>">
+                                        <%= friend.username || friend.email %>
+                                    </label>
+                                </div>
+                            <% } %>
+                        </div>
+                    </div>
+                </div>
+            <% } else { %>
+                <div class="custom-card mb-4">
+                    <div class="custom-card-header">Gestisci Partecipanti</div>
+                    <div class="custom-card-body">
+                        <p class="mb-0">Non hai ancora amici. Aggiungi amici per invitarli ai tuoi gruppi.</p>
+                    </div>
+                </div>
+            <% } %>
 
-            <div class="form-group mb-3">
-                <h5>Amici nel Gruppo</h5>
-                <div id="friendsList" class="mb-3">
-                    <% if(user && user.friends && user.friends.length > 0) { %>
-                        <% for(let friend of user.friends) { %>
-                            <% 
-                                const isParticipant = group.participants && 
-                                                    group.participants.some(p => p._id.toString() === friend._id.toString());
-                            %>
-                            <div class="form-check mb-2">
-                                <input class="form-check-input" type="checkbox" name="participants[]" 
-                                    value="<%= friend._id %>" id="friend-<%= friend._id %>"
-                                    <%= isParticipant ? 'checked' : '' %>>
-                                <label class="form-check-label" for="friend-<%= friend._id %>">
-                                    <%= friend.username || friend.email %>
-                                </label>
-                            </div>
-                        <% } %>
+            <div class="custom-card mb-4">
+                <div class="custom-card-header">Invitati Attuali</div>
+                <div class="custom-card-body">
+                    <% if(group.invitedUsers && group.invitedUsers.length > 0) { %>
+                        <div class="mb-3">
+                            <% for(let invited of group.invitedUsers) { %>
+                                <div class="mb-2 d-flex align-items-center justify-content-between">
+                                    <div>
+                                        <span class="fw-medium"><%= invited.name %></span>
+                                        <span class="ms-2"><%= invited.email %></span>
+                                    </div>
+                                    <button type="button" class="btn btn-sm btn-outline-danger remove-current-invited" 
+                                        data-id="<%= invited.email %>">
+                                        <i class="bi bi-person-x"></i>
+                                    </button>
+                                    <input type="hidden" name="currentInvited[][email]" value="<%= invited.email %>">
+                                    <input type="hidden" name="currentInvited[][name]" value="<%= invited.name %>">
+                                </div>
+                            <% } %>
+                        </div>
                     <% } else { %>
-                        <p>Non hai ancora amici. Aggiungi amici per invitarli ai tuoi gruppi.</p>
+                        <p class="mb-0">Nessun utente invitato in questo gruppo.</p>
                     <% } %>
                 </div>
             </div>
 
-            <div class="form-group mb-4">
-                <h5>Partecipanti Invitati</h5>
-                <div id="invitedList">
-                    <% if(group.invitedUsers && group.invitedUsers.length > 0) { %>
-                        <% for(let invited of group.invitedUsers) { %>
-                            <div class="invited-user-row mb-2">
-                                <div class="row">
-                                    <div class="col-md-6">
-                                        <input type="email" class="form-control" name="invitedEmails[]" 
-                                            value="<%= invited.email %>" placeholder="Email">
-                                    </div>
-                                    <div class="col-md-5">
-                                        <input type="text" class="form-control" name="invitedNames[]" 
-                                            value="<%= invited.name %>" placeholder="Nome visualizzato">
-                                    </div>
-                                    <div class="col-md-1">
-                                        <button type="button" class="btn btn-outline-danger remove-invited">X</button>
-                                    </div>
-                                </div>
-                            </div>
-                        <% } %>
-                    <% } else { %>
-                        <div class="invited-user-row mb-2">
+            <div class="custom-card mb-4">
+                <div class="custom-card-header">Invita Nuovi Partecipanti</div>
+                <div class="custom-card-body">
+                    <div id="invitedList">
+                        <div class="invited-user-row mb-3">
                             <div class="row">
-                                <div class="col-md-6">
-                                    <input type="email" class="form-control" name="invitedEmails[]" placeholder="Email">
+                                <div class="col-md-6 mb-2 mb-md-0">
+                                    <input type="email" class="form-control custom-input" name="invitedEmails[]" placeholder="Email">
                                 </div>
-                                <div class="col-md-5">
-                                    <input type="text" class="form-control" name="invitedNames[]" placeholder="Nome visualizzato">
+                                <div class="col-md-5 mb-2 mb-md-0">
+                                    <input type="text" class="form-control custom-input" name="invitedNames[]" placeholder="Nome visualizzato">
                                 </div>
-                                <div class="col-md-1">
-                                    <button type="button" class="btn btn-outline-danger remove-invited">X</button>
+                                <div class="col-md-1 d-flex justify-content-end">
+                                    <button type="button" class="btn btn-outline-danger remove-invited">
+                                        <i class="bi bi-x"></i>
+                                    </button>
                                 </div>
                             </div>
                         </div>
-                    <% } %>
+                    </div>
+                    <button id="addInvited" type="button" class="btn btn-sm quick-submit-btn mt-2">
+                        <i class="bi bi-plus-circle me-1"></i> Invita Partecipante
+                    </button>
                 </div>
-                <button id="addInvited" type="button" class="btn btn-outline mt-2">+ Invita Partecipante</button>
             </div>
             
-            <div class="d-flex justify-content-between mt-3">
-                <a href="/groups/<%= group._id %>" class="btn btn-secondary">Annulla</a>
-                <button type="submit" class="button btn-lg">Salva Modifiche</button>
+            <div class="d-flex gap-3">
+                <button type="submit" class="btn custom-button flex-grow-1"><i class="bi bi-save me-2"></i>Salva Modifiche</button>
+                <a href="/groups/<%= group._id %>" class="btn btn-outline-secondary"><i class="bi bi-x-circle me-1"></i>Annulla</a>
             </div>
         </form>
     </div>
@@ -105,17 +132,19 @@ document.addEventListener("DOMContentLoaded", () => {
         event.preventDefault();
         
         const newRow = document.createElement("div");
-        newRow.className = "invited-user-row mb-2";
+        newRow.className = "invited-user-row mb-3";
         newRow.innerHTML = `
             <div class="row">
-                <div class="col-md-6">
-                    <input type="email" class="form-control" name="invitedEmails[]" placeholder="Email">
+                <div class="col-md-6 mb-2 mb-md-0">
+                    <input type="email" class="form-control custom-input" name="invitedEmails[]" placeholder="Email">
                 </div>
-                <div class="col-md-5">
-                    <input type="text" class="form-control" name="invitedNames[]" placeholder="Nome visualizzato">
+                <div class="col-md-5 mb-2 mb-md-0">
+                    <input type="text" class="form-control custom-input" name="invitedNames[]" placeholder="Nome visualizzato">
                 </div>
-                <div class="col-md-1">
-                    <button type="button" class="btn btn-outline-danger remove-invited">X</button>
+                <div class="col-md-1 d-flex justify-content-end">
+                    <button type="button" class="btn btn-outline-danger remove-invited">
+                        <i class="bi bi-x"></i>
+                    </button>
                 </div>
             </div>
         `;
@@ -130,6 +159,21 @@ document.addEventListener("DOMContentLoaded", () => {
     document.querySelectorAll(".remove-invited").forEach(btn => {
         btn.addEventListener("click", function() {
             this.closest(".invited-user-row").remove();
+        });
+    });
+    
+    // Rimuove invitati esistenti
+    document.querySelectorAll(".remove-current-invited").forEach(btn => {
+        btn.addEventListener("click", function() {
+            const invitedId = this.getAttribute("data-id");
+            this.closest("div").remove();
+            
+            // Crea un campo hidden per segnalare che questo invitato deve essere rimosso
+            const hiddenInput = document.createElement("input");
+            hiddenInput.type = "hidden";
+            hiddenInput.name = "removeInvited[]";
+            hiddenInput.value = invitedId;
+            document.getElementById("groupForm").appendChild(hiddenInput);
         });
     });
 });
