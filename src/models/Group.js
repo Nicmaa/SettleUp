@@ -64,7 +64,7 @@ groupSchema.methods.currentUserBalance = function (currentUser) {
     return parseFloat(totalAmount.toFixed(2));
 };
 
-groupSchema.statics.calculateBalances = function (transactions) {
+groupSchema.statics.calculateBalances = function (transactions, userCount) {
     if (!transactions || !Array.isArray(transactions)) {
         return { transactionsToSettle: [] };
     }
@@ -91,7 +91,6 @@ groupSchema.statics.calculateBalances = function (transactions) {
     }, {});
 
     const total = Object.values(balances).reduce((sum, amount) => sum + amount, 0);
-    const userCount = Object.keys(balances).length;
     const perPerson = total / userCount;
 
     let debts = Object.entries(balances).map(([username, amount]) => {

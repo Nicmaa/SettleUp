@@ -16,20 +16,7 @@ module.exports.index = async (req, res) => {
 module.exports.createGroup = async (req, res) => {
     const { name, description, participants, image, invitedNames, invitedEmails } = req.body;
 
-    const invitedUsers = [];
-
-    for (let i = 0; i < invitedEmails.length; i++) {
-        const email = invitedEmails[i];
-        if (email && email.trim()) {
-            const name = invitedNames[i] && invitedNames[i].trim()
-                ? invitedNames[i].trim()
-                : `Invitato ${i + 1}`;
-
-            invitedUsers.push({ email, name });
-        }
-    }
-
-    const validation = validateParticipants(participants, invitedUsers, req.user._id);
+    const validation = validateParticipants(participants, [], [], invitedNames, invitedEmails, req.user._id);
     if (!validation.isValid) {
         req.flash('error', validation.message);
         return res.redirect('/groups/new');
@@ -41,7 +28,7 @@ module.exports.createGroup = async (req, res) => {
         description,
         participants: validation.participants,
         owner: req.user._id,
-        invitedUsers: invitedUsers,
+        invitedUsers: validation.invited,
     });
 
     await group.save();
@@ -81,29 +68,29 @@ module.exports.renderEditForm = async (req, res) => {
 };
 
 module.exports.editGroup = async (req, res) => {
+    const { id } = req.params;
+    const { name, description, participants, image, currentInvited, removeInvited, invitedNames, invitedEmails } = req.body;
 
-    const validation = validateParticipants(req.body.participants, req.user._id);
+    const validation = validateParticipants(participants, currentInvited, removeInvited, invitedNames, invitedEmails, req.user._id);
     if (!validation.isValid) {
         req.flash('error', validation.message);
-        return res.redirect(`/groups/${req.params.id}/edit`);
+        return res.redirect(`/groups/${id}/edit`);
     }
 
-    const { name, image, description } = req.body;
-    const group = await Group.findByIdAndUpdate(
-        req.params.id,
-        {
-            name,
-            image: image || undefined,
-            description,
-            participants: validation.participants,
-            updatedAt: Date.now()
-        },
-        { new: true, runValidators: true },
-    );
+    const group = await Group.findById(id);
+    if (!group) {
+        req.flash('error', 'Gruppo non trovato.');
+        return res.redirect('/groups');
+    }
 
-    if (!group) throw new ExpressError("Gruppo non trovato!", 404);
+    group.name = name;
+    group.image = image || group.image;
+    group.description = description;
+    group.participants = validation.participants;
+    group.invitedUsers = validation.invited;
 
-    req.flash('success', 'Gruppo modificato con successo!');
+    await group.save();
+    req.flash('success', 'Gruppo aggiornato con successo!');
     res.redirect(`/groups/${group._id}`);
 };
 
