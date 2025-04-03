@@ -7,6 +7,7 @@ const flash = require('connect-flash');
 const passport = require('./passport');
 const mongoSanitize = require('express-mongo-sanitize');
 const MongoStore = require('connect-mongo');
+const helmet = require('helmet');
 if (process.env.NODE_ENV !== "production") {
     require('dotenv').config();
 }
@@ -38,18 +39,18 @@ module.exports = (app) => {
     const sessionConfig = {
         store,
         name: 'sid_d3f4b1c9e7a2',
-        secret: secret || 'segreto temporaneo', 
+        secret: secret || 'segreto temporaneo',
         resave: false,
         saveUninitialized: false,
         cookie: {
-            httpOnly: true, 
+            httpOnly: true,
             secure: process.env.NODE_ENV === 'production', // Attivo solo in produzione
             sameSite: 'lax', // Protezione CSRF
-            expires: Date.now() + 1000 * 60 * 60 * 24 * 7, 
+            expires: Date.now() + 1000 * 60 * 60 * 24 * 7,
             maxAge: 1000 * 60 * 60 * 24 * 7
         },
     };
-    
+
     app.use(session(sessionConfig));
 
     // Inizializzazione di Passport
@@ -66,4 +67,6 @@ module.exports = (app) => {
         res.locals.error = req.flash('error');
         next();
     });
+
+    app.use(helmet({ contentSecurityPolicy: false }),);
 };
