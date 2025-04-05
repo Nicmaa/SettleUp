@@ -22,7 +22,7 @@
           </div>
           <div class="dropdown">
             <a class="nav-link dropdown-toggle d-flex align-items-center" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-              <span class="me-2"><%= currentUser.username %></span>
+              <span class="me-2"><%= currentUser.username || "username" %></span>
               <div class="avatar"><img src="<%= currentUser.avatar %>"></div>
             </a>
             <ul class="dropdown-menu dropdown-menu-dark" aria-labelledby="userDropdown">
