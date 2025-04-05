@@ -11,7 +11,8 @@ const helmet = require('helmet');
 if (process.env.NODE_ENV !== "production") {
     require('dotenv').config();
 }
-const dbUrl = 'mongodb://127.0.0.1:27017/SettleUp'; //process.env.DB_URL
+//'mongodb://127.0.0.1:27017/SettleUp'
+const dbUrl = process.env.DB_URL;
 const secret = process.env.SECRET;
 
 module.exports = (app) => {
