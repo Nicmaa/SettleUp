@@ -22,12 +22,12 @@
           </div>
           <div class="dropdown">
             <a class="nav-link dropdown-toggle d-flex align-items-center" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-              <span class="me-2"><%= currentUser.username || "username" %></span>
+              <span class="me-2"><%= currentUser.username %></span>
               <div class="avatar"><img src="<%= currentUser.avatar %>"></div>
             </a>
             <ul class="dropdown-menu dropdown-menu-dark" aria-labelledby="userDropdown">
               <li><a class="dropdown-item" href="/users/profile"><i class="bi bi-person"></i> Profilo</a></li>
-              <li><a class="dropdown-item" href="/settings"><i class="bi bi-gear"></i> Impostazioni</a></li>
+              <li><a class="dropdown-item" href="/users/settings"><i class="bi bi-gear"></i> Impostazioni</a></li>
               <li><hr class="dropdown-divider"></li>
               <li><form action="/users/logout" method="post"><button class="dropdown-item"><i class="bi bi-box-arrow-right"></i> Esci</button></form></li>
             </ul>

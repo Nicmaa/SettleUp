@@ -1,8 +1,14 @@
+const { validatePasswordStrength } = require('../middleware');
 const User = require('../models/User');
 
 module.exports.register = async (req, res) => {
     try {
         const { username, email, password } = req.body;
+        const validation = validatePasswordStrength(password);
+        if (!validation.isValid) {
+            req.flash('error', validation.message);
+            return res.redirect('/');
+        }
         const user = new User({ email, username });
         const newUser = await User.register(user, password);
         req.login(newUser, err => {
@@ -59,6 +65,12 @@ module.exports.editProfile = async (req, res) => {
 
     req.flash('success', 'Profilo modificato correttamente!');
     res.redirect('/users/profile');
+};
+
+module.exports.deleteProfile = async (req, res) => {
+    await User.findByIdAndDelete(req.user._id);
+    req.flash('success', 'Profilo eliminato correttamente!');
+    res.redirect('/');
 };
 
 module.exports.sendFriendRequest = async (req, res) => {
@@ -154,3 +166,71 @@ module.exports.cancelFriendRequest = async (req, res) => {
     req.flash('success', "Richiesta di amicizia annullata.");
     res.redirect('/users/profile');
 };
+
+module.exports.changePassword = async (req, res) => {
+    const { currentPassword, newPassword, confirmPassword } = req.body;
+
+    if (newPassword !== confirmPassword) {
+        req.flash('error', 'Le password non corrispondono!');
+        return res.redirect('/users/settings');
+    }
+
+    const validation = validatePasswordStrength(newPassword);
+    if (!validation.isValid) {
+        req.flash('error', validation.message);
+        return res.redirect('/users/settings');
+    }
+
+    try {
+        const user = await User.findById(req.user._id);
+        await user.changePassword(currentPassword, newPassword);
+        await user.save();
+
+        req.flash('success', 'Password modificata correttamente!');
+        res.redirect('/users/settings');
+    } catch (err) {
+        if (err.name === 'IncorrectPasswordError') {
+            req.flash('error', 'La password attuale non è corretta!');
+        } else {
+            req.flash('error', 'Errore durante il cambio password. Riprova.');
+        }
+        res.redirect('/users/settings');
+    }
+};
+
+module.exports.renderSettings = async (req, res) => {
+    const user = await User.findById(req.user._id);
+    res.render('users/settings', { user });
+}
+
+module.exports.changeSettings = async (req, res) => {
+    const user = await User.findById(req.user._id);
+    const notificationSettings = {
+        email: {
+            newExpense: false,
+            paymentReminder: false,
+            friendRequest: false,
+            groupInvite: false
+        },
+        app: {
+            newExpense: false,
+            paymentReminder: false,
+            friendRequest: false,
+            groupInvite: false
+        }
+    };
+    const formData = req.body.notifications || {};
+    Object.keys(notificationSettings).forEach(channel => {
+        if (formData[channel]) {
+            Object.keys(notificationSettings[channel]).forEach(setting => {
+                if (formData[channel][setting]) {
+                    notificationSettings[channel][setting] = true;
+                }
+            });
+        }
+    });
+
+    user.settings.notifications = notificationSettings;
+    await user.save();
+    res.redirect('/users/settings');
+}
