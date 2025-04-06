@@ -89,108 +89,122 @@
     <div id="tooltip" class="tooltip"></div>
     <%- include('./layouts/footer') %>
     <script>
-        // Falling money animation
-        const moneyImages = [
-            '/images/moneta1e.png',
-            '/images/moneta2e.png',
-            '/images/banconota500.jpg',
-            '/images/banconota20.jpg',
-            '/images/banconota200.jpg',
-        ];
-
-        const tooltips = [
-            "Dividi le spese del ristorante equamente",
-            "Monitora chi deve ancora pagare",
-            "Calcola automaticamente i saldi",
-            "Crea gruppi personalizzati",
-            "Esporta i report delle spese",
-            "Registra spese ricorrenti",
-            "Salda i conti con facilità"
-        ];
-
-        function createMoney() {
-            const money = document.createElement("img");
-            money.classList.add("falling-money");
-
-            // Use placeholder images since real images might not be available
-            // In a real implementation, you would use your actual image paths
-            const imageIndex = Math.floor(Math.random() * moneyImages.length);
-            money.src = moneyImages[imageIndex]; // Fallback to the two images you provided
-            money.dataset.tooltip = tooltips[imageIndex];
-
-            // Random position and animation duration
-            money.style.left = Math.random() * window.innerWidth + "px";
-            const duration = Math.random() * 3 + 3; // 3-6 seconds
-            money.style.animation = `falling ${duration}s linear`;
-
-            // Random rotation
-            const rotation = Math.random() * 360;
-            money.style.transform = `rotate(${rotation}deg)`;
-
-            document.body.appendChild(money);
-
-            // Add interactivity
-            money.addEventListener('click', function () {
-                this.classList.toggle('money-interactive');
-                if (this.classList.contains('money-interactive')) {
-                    showTooltip(this);
-                } else {
-                    hideTooltip();
-                }
-            });
-
-            // Remove after animation completes
-            setTimeout(() => {
-                money.remove();
-            }, duration * 1000);
-        }
-
-        function showTooltip(element) {
-            const tooltip = document.getElementById('tooltip');
+    // Falling money animation
+    const moneyImages = [
+        '/images/moneta1e.png',
+        '/images/moneta2e.png',
+        '/images/banconota500.jpg',
+        '/images/banconota20.jpg',
+        '/images/banconota200.jpg',
+    ];
+    
+    const tooltips = [
+        "Dividi le spese del ristorante equamente",
+        "Monitora chi deve ancora pagare",
+        "Calcola automaticamente i saldi",
+        "Crea gruppi personalizzati",
+        "Esporta i report delle spese",
+        "Registra spese ricorrenti",
+        "Salda i conti con facilità"
+    ];
+    
+    function createMoney() {
+        const money = document.createElement("img");
+        money.classList.add("falling-money");
+    
+        const imageIndex = Math.floor(Math.random() * moneyImages.length);
+        money.src = moneyImages[imageIndex];
+        money.dataset.tooltip = tooltips[imageIndex];
+    
+        money.style.left = Math.random() * window.innerWidth + "px";
+        const duration = Math.random() * 3 + 3; // 3-6 seconds
+        money.style.animation = `falling ${duration}s linear`;
+    
+        const rotation = Math.random() * 360;
+        money.style.transform = `rotate(${rotation}deg)`;
+    
+        document.body.appendChild(money);
+    
+        money.addEventListener('click', function () {
+            this.classList.toggle('money-interactive');
+            if (this.classList.contains('money-interactive')) {
+                showTooltip(this);
+            } else {
+                hideTooltip();
+            }
+        });
+    
+        setTimeout(() => {
+            money.remove();
+        }, duration * 1000);
+    }
+    
+    function showTooltip(element) {
+        const tooltip = document.getElementById('tooltip');
+        if (tooltip) {
             tooltip.textContent = element.dataset.tooltip;
             tooltip.style.display = 'block';
-
+    
             const rect = element.getBoundingClientRect();
             tooltip.style.top = `${rect.top - 40}px`;
             tooltip.style.left = `${rect.left + rect.width / 2 - 100}px`;
         }
-
-        function hideTooltip() {
-            document.getElementById('tooltip').style.display = 'none';
+    }
+    
+    function hideTooltip() {
+        const tooltip = document.getElementById('tooltip');
+        if (tooltip) {
+            tooltip.style.display = 'none';
         }
-
-        // Create falling money at intervals
-        setInterval(createMoney, 300);
-
-        // Add keyframes for the falling animation
-        const style = document.createElement("style");
-        style.innerHTML = `
-            @keyframes falling {
-                0% { transform: translateY(-50px) rotate(0deg); }
-                100% { transform: translateY(${window.innerHeight + 100}px) rotate(360deg); }
-            }
-        `;
-        document.head.appendChild(style);
-
+    }
+    
+    // Create falling money at intervals
+    setInterval(createMoney, 300);
+    
+    // Add keyframes for the falling animation
+    const style = document.createElement("style");
+    style.innerHTML = `
+        @keyframes falling {
+            0% { transform: translateY(-50px) rotate(0deg); }
+            100% { transform: translateY(${window.innerHeight + 100}px) rotate(360deg); }
+        }
+    `;
+    document.head.appendChild(style);
+    
+    // Verifica se elementi esistono prima di aggiungere event listeners
+    document.addEventListener('DOMContentLoaded', function() {
         // Tab switching functionality
-        document.getElementById('login-tab').addEventListener('click', function () {
-            this.classList.add('active');
-            document.getElementById('register-tab').classList.remove('active');
-            document.getElementById('login-form').style.display = 'block';
-            document.getElementById('register-form').style.display = 'none';
-        });
-
-        document.getElementById('register-tab').addEventListener('click', function () {
-            this.classList.add('active');
-            document.getElementById('login-tab').classList.remove('active');
-            document.getElementById('register-form').style.display = 'block';
-            document.getElementById('login-form').style.display = 'none';
-        });
-
+        const loginTab = document.getElementById('login-tab');
+        const registerTab = document.getElementById('register-tab');
+        const loginForm = document.getElementById('login-form');
+        const registerForm = document.getElementById('register-form');
+        
+        if (loginTab && registerTab && loginForm && registerForm) {
+            loginTab.addEventListener('click', function () {
+                this.classList.add('active');
+                registerTab.classList.remove('active');
+                loginForm.style.display = 'block';
+                registerForm.style.display = 'none';
+            });
+    
+            registerTab.addEventListener('click', function () {
+                this.classList.add('active');
+                loginTab.classList.remove('active');
+                registerForm.style.display = 'block';
+                loginForm.style.display = 'none';
+            });
+        }
+    
         // Login button in header
-        document.querySelector('.login-btn').addEventListener('click', function () {
-            document.getElementById('auth-box').scrollIntoView({ behavior: 'smooth' });
-        });
+        const loginBtn = document.querySelector('.login-btn');
+        const authBox = document.getElementById('auth-box');
+        
+        if (loginBtn && authBox) {
+            loginBtn.addEventListener('click', function () {
+                authBox.scrollIntoView({ behavior: 'smooth' });
+            });
+        }
+    });  
     </script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
 </body>
