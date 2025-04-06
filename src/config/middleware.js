@@ -16,6 +16,8 @@ const dbUrl = process.env.DB_URL;
 const secret = process.env.SECRET;
 
 module.exports = (app) => {
+    app.set('trust proxy', 1);
+    
     // Configurazione di EJS
     app.engine('ejs', engine);
     app.set('view engine', 'ejs');
