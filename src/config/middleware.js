@@ -63,7 +63,10 @@ module.exports = (app) => {
 
     // Middleware globale per variabili locali
     app.use((req, res, next) => {
-        res.locals.currentUser = req.user;
+        res.locals.currentUser = req.user || {
+            username: "Guest", 
+            avatar: "/images/default_avatar.jpg"
+        };
         res.locals.success = req.flash('success');
         res.locals.error = req.flash('error');
         next();
