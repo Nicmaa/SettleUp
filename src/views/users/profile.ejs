@@ -181,29 +181,29 @@
         document.body.appendChild(backdrop);
 
         const modal = document.createElement('div');
-        modal.className = 'modal fade show';
+        modal.className = 'modal fade show app-modal';
         modal.style.display = 'block';
         modal.innerHTML = `
-            <div class="modal-dialog">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h5 class="modal-title">Aggiungi Amico</h5>
-                        <button type="button" class="btn-close" aria-label="Close"></button>
-                    </div>
-                    <form action="/users/friends" method="POST" novalidate>
-                        <div class="modal-body">
-                            <div class="mb-3">
-                                <label for="receiverUsername" class="form-label">Username dell'amico</label>
-                                <input type="text" class="form-control" id="receiverUsername" name="receiverUsername" placeholder="Inserisci username" required>
+                <div class="modal-dialog modal-dialog-centered">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="addFriendModalLabel">Aggiungi Amico</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <form action="/users/friends" method="POST" novalidate>
+                            <div class="modal-body">
+                                <div class="mb-3">
+                                    <label for="receiverUsername" class="form-label">Username dell'amico</label>
+                                    <input type="text" class="form-control" id="receiverUsername" name="receiverUsername" placeholder="Inserisci username" required>
+                                </div>
                             </div>
-                        </div>
-                        <div class="modal-footer">
-                            <button type="button" class="btn btn-secondary btn-close-modal">Annulla</button>
-                            <button type="submit" class="btn btn-primary btn-send-request">Invia Richiesta</button>
-                        </div>
-                    </form>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annulla</button>
+                                <button type="submit" class="btn btn-primary">Invia Richiesta</button>
+                            </div>
+                        </form>
+                    </div>
                 </div>
-            </div>
         `;
         document.body.appendChild(modal);
 

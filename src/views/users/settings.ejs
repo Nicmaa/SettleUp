@@ -1,0 +1,382 @@
+<% layout('./layouts/layout') -%>
+
+<div class="row">
+    <div class="col-md-8 offset-md-2 mb-5">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h3 class="m-0">Impostazioni</h3>
+            <a href="/users/profile" class="btn quick-submit-btn">
+                <i class="bi bi-person-circle me-1"></i> Torna al Profilo
+            </a>
+        </div>
+        
+        <div class="row">
+            <div class="col-md-3 mb-4">
+                <!-- Menu laterale -->
+                <div class="nav flex-column nav-pills settings-nav" id="v-pills-tab" role="tablist" aria-orientation="vertical">
+                    <button class="nav-link active" id="v-pills-account-tab" data-bs-toggle="pill" data-bs-target="#v-pills-account" type="button" role="tab" aria-controls="v-pills-account" aria-selected="true">
+                        <i class="bi bi-shield-lock me-2"></i>Account
+                    </button>
+                    <button class="nav-link" id="v-pills-notifications-tab" data-bs-toggle="pill" data-bs-target="#v-pills-notifications" type="button" role="tab" aria-controls="v-pills-notifications" aria-selected="false">
+                        <i class="bi bi-bell me-2"></i>Notifiche
+                    </button>
+                    <button class="nav-link" id="v-pills-preferences-tab" data-bs-toggle="pill" data-bs-target="#v-pills-preferences" type="button" role="tab" aria-controls="v-pills-preferences" aria-selected="false">
+                        <i class="bi bi-sliders me-2"></i>Preferenze
+                    </button>
+                </div>
+            </div>
+            
+            <div class="col-md-9">
+                <div class="tab-content" id="v-pills-tabContent">
+                    <!-- Impostazioni Account -->
+                    <div class="tab-pane fade show active" id="v-pills-account" role="tabpanel" aria-labelledby="v-pills-account-tab">
+                        <!-- Cambio Password -->
+                        <div class="custom-card mb-4">
+                            <div class="custom-card-header">Modifica Password</div>
+                            <div class="custom-card-body">
+                                <form id="passwordForm" class="validated-form" method="POST" action="/users/settings/password?_method=PATCH" novalidate>
+                                    <div class="mb-3">
+                                        <label for="currentPassword" class="form-label">Password Attuale</label>
+                                        <div class="input-group">
+                                            <input type="password" class="form-control custom-input" id="currentPassword" name="currentPassword" required>
+                                            <button class="btn quick-submit-btn toggle-password" type="button" data-target="currentPassword">
+                                                <i class="bi bi-eye"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="mb-3">
+                                        <label for="newPassword" class="form-label">Nuova Password</label>
+                                        <div class="input-group">
+                                            <input type="password" class="form-control custom-input" id="newPassword" name="newPassword" required>
+                                            <button class="btn quick-submit-btn toggle-password" type="button" data-target="newPassword">
+                                                <i class="bi bi-eye"></i>
+                                            </button>
+                                        </div>
+                                        <div class="password-strength mt-2">
+                                            <div class="progress" style="height: 5px;">
+                                                <div class="progress-bar" role="progressbar" style="width: 0%;" id="passwordStrength"></div>
+                                            </div>
+                                            <small id="passwordStrengthText">La password deve contenere almeno 8 caratteri</small>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="mb-4">
+                                        <label for="confirmPassword" class="form-label">Conferma Password</label>
+                                        <div class="input-group">
+                                            <input type="password" class="form-control custom-input" id="confirmPassword" name="confirmPassword" required>
+                                            <button class="btn quick-submit-btn toggle-password" type="button" data-target="confirmPassword">
+                                                <i class="bi bi-eye"></i>
+                                            </button>
+                                        </div>
+                                        <small id="passwordMatch" class=""></small>
+                                    </div>
+                                    
+                                    <button type="submit" class="btn custom-button">
+                                        <i class="bi bi-lock me-2"></i>Aggiorna Password
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                        
+                        <!-- Area pericolosa -->
+                        <div class="custom-card mb-4 danger-zone">
+                            <div class="custom-card-header danger-header">Area Pericolosa</div>
+                            <div class="custom-card-body">
+                                <p class=" mb-4">Le seguenti azioni sono irreversibili. Procedi con cautela.</p>
+                                
+                                <div class="d-grid gap-3">
+                                    <button type="button" id="deleteAccount" class="btn btn-outline-danger" data-bs-toggle="modal" data-bs-target="#deleteAccountModal">
+                                        <i class="bi bi-trash me-2"></i>Elimina account
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Impostazioni Notifiche -->
+                    <div class="tab-pane fade" id="v-pills-notifications" role="tabpanel" aria-labelledby="v-pills-notifications-tab">
+                        <div class="custom-card mb-4">
+                            <div class="custom-card-header">Impostazioni Notifiche</div>
+                            <div class="custom-card-body">
+                                <form id="notificationsForm" class="validated-form" method="POST" action="/users/settings?_method=PATCH" novalidate>
+                                    <h5 class="mb-3">Notifiche via email</h5>
+
+                                    <div class="mb-3 form-check form-switch">
+                                        <input class="form-check-input" type="checkbox" id="emailNewExpense" name="notifications[email][newExpense]" <%= user.settings?.notifications?.email?.newExpense ? 'checked' : '' %>>
+                                        <label class="form-check-label" for="emailNewExpense">Nuove spese</label>
+                                        <div class=" small">Ricevi una notifica quando viene aggiunta una nuova spesa</div>
+                                    </div>
+                                    
+                                    <div class="mb-3 form-check form-switch">
+                                        <input class="form-check-input" type="checkbox" id="emailPaymentReminder" name="notifications[email][paymentReminder]" <%= user.settings?.notifications?.email?.paymentReminder ? 'checked' : '' %>>
+                                        <label class="form-check-label" for="emailPaymentReminder">Promemoria pagamenti</label>
+                                        <div class=" small">Ricevi promemoria per i pagamenti in sospeso</div>
+                                    </div>
+                                    
+                                    <div class="mb-3 form-check form-switch">
+                                        <input class="form-check-input" type="checkbox" id="emailFriendRequest" name="notifications[email][friendRequest]" <%= user.settings?.notifications?.email?.friendRequest ? 'checked' : '' %>>
+                                        <label class="form-check-label" for="emailFriendRequest">Richieste di amicizia</label>
+                                        <div class=" small">Ricevi notifiche per le richieste di amicizia</div>
+                                    </div>
+                                    
+                                    <div class="mb-3 form-check form-switch">
+                                        <input class="form-check-input" type="checkbox" id="emailGroupInvite" name="notifications[email][groupInvite]" <%= user.settings?.notifications?.email?.groupInvite ? 'checked' : '' %>>
+                                        <label class="form-check-label" for="emailGroupInvite">Inviti ai gruppi</label>
+                                        <div class=" small">Ricevi notifiche per gli inviti ai gruppi</div>
+                                    </div>
+                                    
+                                    <hr class="my-4">
+                                    
+                                    <h5 class="mb-3">Notifiche in app</h5>
+                                    
+                                    <div class="mb-3 form-check form-switch">
+                                        <input class="form-check-input" type="checkbox" id="appNewExpense" name="notifications[app][newExpense]" <%= user.settings?.notifications?.app?.newExpense ? 'checked' : '' %>>
+                                        <label class="form-check-label" for="appNewExpense">Nuove spese</label>
+                                    </div>
+                                    
+                                    <div class="mb-3 form-check form-switch">
+                                        <input class="form-check-input" type="checkbox" id="appPaymentReminder" name="notifications[app][paymentReminder]" <%= user.settings?.notifications?.app?.paymentReminder ? 'checked' : '' %>>
+                                        <label class="form-check-label" for="appPaymentReminder">Promemoria pagamenti</label>
+                                    </div>
+                                    
+                                    <div class="mb-3 form-check form-switch">
+                                        <input class="form-check-input" type="checkbox" id="appFriendRequest" name="notifications[app][friendRequest]" <%= user.settings?.notifications?.app?.friendRequest ? 'checked' : '' %>>
+                                        <label class="form-check-label" for="appFriendRequest">Richieste di amicizia</label>
+                                    </div>
+                                    
+                                    <div class="mb-3 form-check form-switch">
+                                        <input class="form-check-input" type="checkbox" id="appGroupInvite" name="notifications[app][groupInvite]" <%= user.settings?.notifications?.app?.groupInvite ? 'checked' : '' %>>
+                                        <label class="form-check-label" for="appGroupInvite">Inviti ai gruppi</label>
+                                    </div>
+                                    
+                                    <button type="submit" class="btn custom-button mt-3">
+                                        <i class="bi bi-save me-2"></i>Salva Impostazioni
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Preferenze -->
+                    <div class="tab-pane fade" id="v-pills-preferences" role="tabpanel" aria-labelledby="v-pills-preferences-tab">
+                        <div class="custom-card mb-4">
+                            <div class="custom-card-header">Preferenze Applicazione</div>
+                            <div class="custom-card-body">
+                                <form id="preferencesForm" class="validated-form" method="POST" action="/users/settings?_method=PATCH" novalidate>
+                                    <div class="mb-3">
+                                        <label for="language" class="form-label">Lingua</label>
+                                        <select class="form-select custom-input" id="language" name="preferences.language">
+                                            <option value="it" <%= user.settings?.preferences?.language === 'it' ? 'selected' : '' %>>Italiano</option>
+                                            <option value="en" <%= user.settings?.preferences?.language === 'en' ? 'selected' : '' %>>English</option>
+                                            <option value="es" <%= user.settings?.preferences?.language === 'es' ? 'selected' : '' %>>Español</option>
+                                            <option value="fr" <%= user.settings?.preferences?.language === 'fr' ? 'selected' : '' %>>Français</option>
+                                            <option value="de" <%= user.settings?.preferences?.language === 'de' ? 'selected' : '' %>>Deutsch</option>
+                                        </select>
+                                    </div>
+                                    
+                                    <div class="mb-3">
+                                        <label for="currency" class="form-label">Valuta Predefinita</label>
+                                        <select class="form-select custom-input" id="currency" name="preferences.currency">
+                                            <option value="EUR" <%= user.settings?.preferences?.currency === 'EUR' ? 'selected' : '' %>>Euro (€)</option>
+                                            <option value="USD" <%= user.settings?.preferences?.currency === 'USD' ? 'selected' : '' %>>Dollaro ($)</option>
+                                            <option value="GBP" <%= user.settings?.preferences?.currency === 'GBP' ? 'selected' : '' %>>Sterlina (£)</option>
+                                            <option value="JPY" <%= user.settings?.preferences?.currency === 'JPY' ? 'selected' : '' %>>Yen (¥)</option>
+                                            <option value="CHF" <%= user.settings?.preferences?.currency === 'CHF' ? 'selected' : '' %>>Franco svizzero (Fr)</option>
+                                        </select>
+                                    </div>
+                                    
+                                    <div class="mb-3">
+                                        <label for="theme" class="form-label">Tema</label>
+                                        <select class="form-select custom-input" id="theme" name="preferences.theme">
+                                            <option value="system" <%= user.settings?.preferences?.theme === 'system' ? 'selected' : '' %>>Predefinito di sistema</option>
+                                            <option value="light" <%= user.settings?.preferences?.theme === 'light' ? 'selected' : '' %>>Chiaro</option>
+                                            <option value="dark" <%= user.settings?.preferences?.theme === 'dark' ? 'selected' : '' %>>Scuro</option>
+                                        </select>
+                                    </div>
+                                    
+                                    <div class="mb-3">
+                                        <label for="dateFormat" class="form-label">Formato Data</label>
+                                        <select class="form-select custom-input" id="dateFormat" name="preferences.dateFormat">
+                                            <option value="DD/MM/YYYY" <%= user.settings?.preferences?.dateFormat === 'DD/MM/YYYY' ? 'selected' : '' %>>DD/MM/YYYY</option>
+                                            <option value="MM/DD/YYYY" <%= user.settings?.preferences?.dateFormat === 'MM/DD/YYYY' ? 'selected' : '' %>>MM/DD/YYYY</option>
+                                            <option value="YYYY-MM-DD" <%= user.settings?.preferences?.dateFormat === 'YYYY-MM-DD' ? 'selected' : '' %>>YYYY-MM-DD</option>
+                                        </select>
+                                    </div>
+                                    
+                                    <hr class="my-4">
+                                    
+                                    <h5 class="mb-3">Opzioni Divisione Spese</h5>
+                                    
+                                    <div class="mb-3">
+                                        <label for="defaultSplitMethod" class="form-label">Metodo Predefinito</label>
+                                        <select class="form-select custom-input" id="defaultSplitMethod" name="preferences.defaultSplitMethod">
+                                            <option value="equal" <%= user.settings?.preferences?.defaultSplitMethod === 'equal' ? 'selected' : '' %>>Divisione equa</option>
+                                            <option value="percentage" <%= user.settings?.preferences?.defaultSplitMethod === 'percentage' ? 'selected' : '' %>>Percentuale</option>
+                                            <option value="exact" <%= user.settings?.preferences?.defaultSplitMethod === 'exact' ? 'selected' : '' %>>Importo esatto</option>
+                                            <option value="shares" <%= user.settings?.preferences?.defaultSplitMethod === 'shares' ? 'selected' : '' %>>Quote</option>
+                                        </select>
+                                    </div>
+                                    
+                                    <button type="submit" class="btn custom-button mt-3">
+                                        <i class="bi bi-save me-2"></i>Salva Preferenze
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Gestione password strength
+    document.addEventListener('DOMContentLoaded', function() {
+        const newPassword = document.getElementById('newPassword');
+        const confirmPassword = document.getElementById('confirmPassword');
+        const passwordStrength = document.getElementById('passwordStrength');
+        const passwordStrengthText = document.getElementById('passwordStrengthText');
+        const passwordMatch = document.getElementById('passwordMatch');
+        const deleteConfirmation = document.getElementById('deleteConfirmation');
+        const confirmDeleteBtn = document.getElementById('confirmDeleteBtn');
+        const paymentMethodType = document.getElementById('paymentMethodType');
+        const paymentTypeFields = document.querySelectorAll('.payment-type-fields');
+        
+        // Funzione per mostrare/nascondere password
+        document.querySelectorAll('.toggle-password').forEach(button => {
+            button.addEventListener('click', function() {
+                const targetId = this.getAttribute('data-target');
+                const passwordInput = document.getElementById(targetId);
+                
+                if (passwordInput.type === 'password') {
+                    passwordInput.type = 'text';
+                    this.innerHTML = '<i class="bi bi-eye-slash"></i>';
+                } else {
+                    passwordInput.type = 'password';
+                    this.innerHTML = '<i class="bi bi-eye"></i>';
+                }
+            });
+        });
+        
+        // Validatore password
+        if (newPassword) {
+            newPassword.addEventListener('input', function() {
+                const password = this.value;
+                let strength = 0;
+                
+                // Calcola forza password
+                if (password.length >= 8) strength += 25;
+                if (password.match(/[a-z]+/)) strength += 25;
+                if (password.match(/[A-Z]+/)) strength += 25;
+                if (password.match(/[0-9]+/) || password.match(/[^a-zA-Z0-9]+/)) strength += 25;
+                
+                // Aggiorna UI
+                passwordStrength.style.width = strength + '%';
+                
+                if (strength < 25) {
+                    passwordStrength.className = 'progress-bar bg-danger';
+                    passwordStrengthText.innerHTML = 'Password molto debole';
+                } else if (strength < 50) {
+                    passwordStrength.className = 'progress-bar bg-warning';
+                    passwordStrengthText.innerHTML = 'Password debole';
+                } else if (strength < 75) {
+                    passwordStrength.className = 'progress-bar bg-info';
+                    passwordStrengthText.innerHTML = 'Password media';
+                } else {
+                    passwordStrength.className = 'progress-bar bg-success';
+                    passwordStrengthText.innerHTML = 'Password forte';
+                }
+                
+                // Verifica corrispondenza
+                if (confirmPassword.value) {
+                    checkPasswordMatch();
+                }
+            });
+        }
+        
+        // Verifica corrispondenza password
+        function checkPasswordMatch() {
+            if (newPassword.value === confirmPassword.value) {
+                passwordMatch.className = 'text-success';
+                passwordMatch.innerHTML = 'Le password corrispondono';
+            } else {
+                passwordMatch.className = 'text-danger';
+                passwordMatch.innerHTML = 'Le password non corrispondono';
+            }
+        }
+        
+        if (confirmPassword) {
+            confirmPassword.addEventListener('input', checkPasswordMatch);
+        }
+        
+        // Gestione conferma eliminazione account
+        if (deleteConfirmation) {
+            deleteConfirmation.addEventListener('input', function() {
+                confirmDeleteBtn.disabled = this.value !== 'elimina';
+            });
+        }
+
+        //Modal
+        const deleteModal = document.querySelector('#deleteAccount');
+        function createDeleteModal() {
+        const backdrop = document.createElement('div');
+        backdrop.className = 'modal-backdrop fade show';
+        document.body.appendChild(backdrop);
+
+        const modal = document.createElement('div');
+        modal.className = 'modal fade show app-modal';
+        modal.style.display = 'block';
+        modal.innerHTML = `
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="deleteAccountModalLabel">Conferma Eliminazione Account</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="alert alert-danger">
+                            <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                            <strong>Attenzione:</strong> Questa azione è irreversibile e tutti i tuoi dati verranno eliminati permanentemente.
+                        </div>
+                        <p>Per confermare, digitare "<strong>elimina</strong>" nel campo sottostante:</p>
+                        <input type="text" class="form-control custom-input" id="deleteConfirmation" placeholder="elimina">
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Annulla</button>
+                        <form action="/users/profile?_method=DELETE" method="POST">
+                            <button type="submit" class="btn btn-danger" id="confirmDeleteBtn" disabled>
+                                <i class="bi bi-trash me-2"></i>Elimina Account
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        `;
+        document.body.appendChild(modal);
+
+        const closeButtons = modal.querySelectorAll('.btn-close, .btn-close-modal');
+        closeButtons.forEach(btn => {
+            btn.addEventListener('click', () => {
+                modal.remove();
+                backdrop.remove();
+            });
+        });
+
+        // Gestione conferma eliminazione
+        const deleteConfirmField = modal.querySelector('#deleteConfirmation');
+        const confirmDeleteButton = modal.querySelector('#confirmDeleteBtn');
+        
+        deleteConfirmField.addEventListener('input', function() {
+            confirmDeleteButton.disabled = this.value !== 'elimina';
+        });
+    }
+
+    if (deleteModal) {
+        deleteModal.addEventListener('click', function(e) {
+            e.preventDefault();
+            createDeleteModal();
+        });
+    }
+});
+</script>

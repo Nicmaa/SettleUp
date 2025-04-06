@@ -14,7 +14,20 @@ const userSchema = new Schema({
   createdAt: { type: Date, default: Date.now },
   updatedAt: { type: Date, default: Date.now },
   settings: {
-    notifications: { email: { type: Boolean, default: true }, newTransaction: { type: Boolean, default: true }, },
+    notifications: {
+      email: {
+        newExpense: Boolean,
+        paymentReminder: Boolean,
+        friendRequest: Boolean,
+        groupInvite: Boolean,
+      },
+      app: {
+        newExpense: Boolean,
+        paymentReminder: Boolean,
+        friendRequest: Boolean,
+        groupInvite: Boolean,
+      },
+    },
     theme: { type: String, enum: ['light', 'dark', 'system'], default: 'system' }
   }
 }, {

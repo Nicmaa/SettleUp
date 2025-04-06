@@ -540,23 +540,13 @@ footer {
   transform: translateY(-2px);
 }
 
-.avatar {
+.avatar img {
   width: 40px;
   height: 40px;
-  border-radius: 50%;
-  background-color: var(--accent);
-  color: #333;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  font-weight: bold;
-  margin-left: 10px;
-}
-
-.avatar img {
   max-height: 100%;
   max-width: 100%;
   border-radius: 50%;
+  object-fit: cover;
 }
 
 /* Group Header Styling */
@@ -1220,4 +1210,143 @@ footer {
       grid-template-columns: repeat(2, 1fr);
       grid-template-rows: repeat(4, 1fr);
   }
+}
+
+/* MODAL STYLING */
+.app-modal .modal-content {
+  background-color: var(--card-bg);
+  border-radius: 10px;
+  border: 1px solid var(--primary-dark);
+  box-shadow: var(--shadow);
+  color: var(--text);
+}
+
+.app-modal .modal-header {
+  border-bottom: 1px solid var(--primary-dark);
+  padding: 1rem 1.5rem;
+}
+
+.app-modal .modal-title {
+  color: var(--text);
+  font-weight: 600;
+}
+
+.app-modal .btn-close {
+  filter: invert(1) grayscale(100%) brightness(200%);
+}
+
+.app-modal .modal-body {
+  padding: 1.5rem;
+}
+
+.app-modal .modal-footer {
+  border-top: 1px solid var(--primary-dark);
+  padding: 1rem 1.5rem;
+}
+
+.app-modal .form-control,
+.app-modal .form-select {
+  background-color: rgba(30, 30, 60, 0.5);
+  border: 1px solid var(--primary-dark);
+  color: var(--text);
+  border-radius: 6px;
+  padding: 0.75rem;
+}
+
+.app-modal .form-control::placeholder {
+  color: rgba(248, 249, 250, 0.5);
+}
+
+.app-modal .form-control:focus,
+.app-modal .form-check-input:focus {
+  box-shadow: 0 0 0 0.25rem rgba(78, 84, 200, 0.25);
+  border-color: var(--primary);
+}
+
+.app-modal .form-label {
+  color: var(--text);
+  margin-bottom: 0.5rem;
+}
+
+.app-modal .form-check-input {
+  background-color: rgba(30, 30, 60, 0.5);
+  border: 1px solid var(--primary-dark);
+}
+
+.app-modal .form-check-input:checked {
+  background-color: var(--primary);
+  border-color: var(--primary);
+}
+
+.app-modal .form-check-label {
+  color: var(--text);
+}
+
+/* Alert di warning */
+.app-modal .alert-danger {
+  background-color: rgba(220, 53, 69, 0.2);
+  border: 1px solid rgba(220, 53, 69, 0.5);
+  color: #fff;
+  border-radius: 8px;
+}
+
+.app-modal .alert-danger i,
+.app-modal .alert-danger strong {
+  color: var(--accent);
+}
+
+/* Bottoni */
+.app-modal .btn {
+  border-radius: 6px;
+  padding: 0.5rem 1rem;
+  transition: all 0.3s ease;
+}
+
+.app-modal .btn-outline-secondary {
+  color: var(--text);
+  border: 1px solid var(--text);
+}
+
+.app-modal .btn-outline-secondary:hover {
+  background-color: rgba(248, 249, 250, 0.1);
+}
+
+.app-modal .btn-primary,
+.app-modal .custom-button {
+  background-color: var(--primary);
+  border: none;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.app-modal .btn-primary:hover,
+.app-modal .custom-button:hover {
+  background-color: var(--primary-dark);
+  transform: translateY(-2px);
+}
+
+.app-modal .btn-danger {
+  background-color: #dc3545;
+  border: none;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.app-modal .btn-danger:hover:not([disabled]) {
+  background-color: #bb2d3b;
+  transform: translateY(-2px);
+}
+
+.app-modal .btn-danger:disabled,
+.app-modal .btn-primary:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+}
+
+.app-modal .btn-secondary {
+  background-color: rgba(108, 117, 125, 0.2);
+  border: 1px solid rgba(108, 117, 125, 0.5);
+  color: var(--text);
+}
+
+.app-modal .btn-secondary:hover {
+  background-color: rgba(108, 117, 125, 0.3);
 }

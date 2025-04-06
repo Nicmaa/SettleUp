@@ -62,17 +62,13 @@ module.exports.isGroupOwner = catchAsync(async (req, res, next) => {
 });
 
 // Validazione password
-module.exports.validatePasswordStrength = (req, res, next) => {
-    const { password } = req.body;
-
+module.exports.validatePasswordStrength = (password) => {
     if (!password) {
-        req.flash('error', 'Password mancante!');
-        return res.redirect('/');
+        return { isValid: false, message: 'Password mancante!' };
     }
 
     if (password.length < 8) {
-        req.flash('error', 'La password deve avere almeno 8 caratteri!');
-        return res.redirect('/');
+        return { isValid: false, message: 'La password deve avere almeno 8 caratteri!' };
     }
 
     const hasNumber = /\d/.test(password);
@@ -80,11 +76,10 @@ module.exports.validatePasswordStrength = (req, res, next) => {
     const hasUpperCase = /[A-Z]/.test(password);
 
     if (!hasNumber || !hasLowerCase || !hasUpperCase) {
-        req.flash('error', 'La password deve contenere almeno una lettera maiuscola, una minuscola e un numero!');
-        return res.redirect('/');
+        return { isValid: false, message: 'La password deve contenere almeno una lettera maiuscola, una minuscola e un numero!' };
     }
 
-    next();
+    return { isValid: true, message: '' };
 };
 
 module.exports.validateParticipants = (participants, currentInvited = [], removeInvited = [], invitedNames = [], invitedEmails = [], userId) => {
