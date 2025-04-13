@@ -15,8 +15,9 @@ module.exports.index = async (req, res) => {
 
 module.exports.createGroup = async (req, res) => {
     const { name, description, participants, image, invitedNames, invitedEmails } = req.body;
+    const users = await User.find({});
 
-    const validation = validateParticipants(participants, [], [], invitedNames, invitedEmails, req.user._id);
+    const validation = validateParticipants(participants, [], [], invitedNames, invitedEmails, req.user._id, users);
     if (!validation.isValid) {
         req.flash('error', validation.message);
         return res.redirect('/groups/new');
