@@ -1,5 +1,7 @@
 const { validatePasswordStrength } = require('../middleware');
 const User = require('../models/User');
+const Group = require('../models/Group');
+const Transaction = require('../models/Transaction');
 
 module.exports.register = async (req, res) => {
     try {
@@ -11,6 +13,35 @@ module.exports.register = async (req, res) => {
         }
         const user = new User({ email, username });
         const newUser = await User.register(user, password);
+
+        const groups = await Group.find({ 'invitedUsers.email': email });
+        for (const group of groups) {
+            const invitedUser = group.invitedUsers.find(inv => inv.email === email);
+            const placeholderName = invitedUser?.name || email;
+
+            group.participants.push(newUser._id);
+            group.invitedUsers = group.invitedUsers.filter(inv => inv.email !== email);
+            await group.save();
+
+            await Transaction.updateMany(
+                {
+                    'group': group._id,
+                    'amounts.user': placeholderName,
+                    'amounts.isInvited': true
+                },
+                {
+                    $set: {
+                        'amounts.$[elem].user': username,
+                        'amounts.$[elem].isInvited': false
+                    }
+                },
+                {
+                    arrayFilters: [{ 'elem.user': placeholderName, 'elem.isInvited': true }]
+                }
+            );
+            await Transaction.refreshBalance(group._id);
+        }
+
         req.login(newUser, err => {
             if (err) return next(err);
             req.flash('success', `Benvenuto ${newUser.username}!`);

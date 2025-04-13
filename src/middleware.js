@@ -82,7 +82,7 @@ module.exports.validatePasswordStrength = (password) => {
     return { isValid: true, message: '' };
 };
 
-module.exports.validateParticipants = (participants, currentInvited = [], removeInvited = [], invitedNames = [], invitedEmails = [], userId) => {
+module.exports.validateParticipants = (participants, currentInvited = [], removeInvited = [], invitedNames = [], invitedEmails = [], userId, users = []) => {
     // Set per i partecipanti per evitare duplicati
     const participantsSet = new Set(Array.isArray(participants) ? participants : participants ? [participants] : []);
     participantsSet.add(userId); // L'owner deve sempre essere nei partecipanti
@@ -93,13 +93,31 @@ module.exports.validateParticipants = (participants, currentInvited = [], remove
         invitedUsers = invitedUsers.filter(invite => !removeInvited.includes(invite.email));
     }
 
-    // Aggiunta dei nuovi invitati
+    // Mappa delle email degli utenti esistenti per verificare corrispondenze
+    const userEmailMap = {};
+    if (Array.isArray(users)) {
+        users.forEach(user => {
+            if (user && user.email) {
+                userEmailMap[user.email.toLowerCase()] = user._id || user.id;
+            }
+        });
+    }
+
+    // Aggiunta dei nuovi invitati, con controllo se l'email corrisponde a un utente esistente
     if (Array.isArray(invitedEmails) && invitedEmails.length > 0) {
         for (let i = 0; i < invitedEmails.length; i++) {
             const email = invitedEmails[i]?.trim();
             if (email) {
-                const name = invitedNames?.[i]?.trim() || `Invitato ${i + 1}`;
-                invitedUsers.push({ email, name });
+                const lowerCaseEmail = email.toLowerCase();
+                // Controlla se l'email corrisponde a un utente esistente
+                if (userEmailMap[lowerCaseEmail]) {
+                    // Aggiungi l'utente ai partecipanti anziché agli invitati
+                    participantsSet.add(userEmailMap[lowerCaseEmail]);
+                } else {
+                    // Aggiungi agli invitati normalmente
+                    const name = invitedNames?.[i]?.trim() || `Invitato ${i + 1}`;
+                    invitedUsers.push({ email, name });
+                }
             }
         }
     }
