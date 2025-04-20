@@ -21,7 +21,12 @@ app.use('/groups', groupRoutes);
 app.use('/transactions', transactionRoutes);
 
 app.get('/', (req,res)=> {
-    res.render('home');
+    if (req.isAuthenticated()) {
+        return res.redirect('/groups');
+    }
+    else {
+        res.render('home');
+    }
 });
 
 //Gestione errori generici
