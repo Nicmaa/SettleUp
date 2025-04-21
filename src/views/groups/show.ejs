@@ -52,7 +52,7 @@
                                     <h5 class="mb-0">Totale Pagato</h5>
                                     <i class="bi bi-cash-stack text-accent fs-4"></i>
                                 </div>
-                                <h3 class="mt-3 mb-0 text-accent">€<%= group.totalSpent %></h3>
+                                <h3 class="mt-3 mb-0 text-accent">€<%= group.totalSpent.toFixed(2) %></h3>
                                 <br>
                             </div>
                         </div>
@@ -125,13 +125,7 @@
                 <div class="transaction-card animate-slide-in">
                     <div class="transaction-header">
                         <div class="transaction-date">
-                            <i class="bi bi-calendar-event"></i>
-                            <%= t.createdAt.toLocaleDateString('it-IT', { 
-                                weekday: 'long', 
-                                year: 'numeric', 
-                                 month: 'long', 
-                                day: 'numeric' 
-                            }) %>
+                            <%= t.categoryEmoji %> <%= t.formattedDate %> <%= t.description ? `- ${t.description}` : `` %>
                         </div>
                         <div class="transaction-actions dropdown">
                             <button class="btn btn-sm" type="button" data-bs-toggle="dropdown">

@@ -10,6 +10,7 @@ const transactionSchema = new Schema({
         enum: ['Cibo', 'Trasporti', 'Svago', 'Abbigliamento', 'Lavoro', 'Casa', 'Salute', 'Altro'],
         default: 'Altro'
     },
+    categoryEmoji: { type: String, default: '🔍'},
     amounts: [
         {
             user: { type: String, required: true },

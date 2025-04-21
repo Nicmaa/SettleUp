@@ -2,6 +2,17 @@ const Transaction = require('../models/Transaction');
 const Group = require('../models/Group');
 const ExpressError = require('../utilities/expressError');
 
+const categoryEmojis = {
+    "Cibo": "🍕",
+    "Trasporti": "🚌",
+    "Svago": "🎮",
+    "Lavoro": "⚒️",
+    "Abbigliamento": "👕",
+    "Casa": "🏠",
+    "Salute": "🩺",
+    "Altro": "🔍"
+};
+
 module.exports.renderNewForm = async (req, res) => {
     const group = await Group.findById(req.params.id)
         .populate('participants', 'username');
@@ -14,14 +25,16 @@ module.exports.renderNewForm = async (req, res) => {
 
 module.exports.createTransaction = async (req, res) => {
     const group = await Group.findById(req.params.id);
-
     if (!group) throw new ExpressError("Gruppo non trovato!", 404);
+
+    const { category, description, amounts } = req.body;
 
     const newTransaction = new Transaction({
         group: group._id,
-        amounts: req.body.amounts,
-        description: req.body.description,
-        category: req.body.category,
+        amounts,
+        description,
+        category,
+        categoryEmoji: categoryEmojis[category]
     });
 
     await newTransaction.save();
@@ -51,11 +64,14 @@ module.exports.editTransaction = async (req, res) => {
     const transaction = await Transaction.findById(req.params.id);
     if (!transaction) throw new ExpressError("Transazione non trovata!", 404);
 
-    transaction.amounts = req.body.amounts;
-    transaction.description = req.body.description;
-    transaction.category = req.body.category;
-    await transaction.save();
+    const { category, description, amounts } = req.body;
 
+    transaction.amounts = amounts;
+    transaction.description = description;
+    transaction.category = category;
+    transaction.categoryEmoji = categoryEmojis[category];
+
+    await transaction.save();
     await Transaction.refreshBalance(transaction.group);
 
     req.flash('success', 'Transazione modificata con successo!');
