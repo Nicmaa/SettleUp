@@ -64,7 +64,7 @@ groupSchema.methods.currentUserBalance = function (currentUser) {
     return parseFloat(totalAmount.toFixed(2));
 };
 
-groupSchema.statics.calculateBalances = function (transactions, userCount) {
+groupSchema.statics.calculateBalances = function (transactions, userCount, loans = []) {
     if (!transactions || !Array.isArray(transactions)) {
         return { transactionsToSettle: [] };
     }
@@ -99,6 +99,25 @@ groupSchema.statics.calculateBalances = function (transactions, userCount) {
             balance: amount - perPerson
         };
     });
+
+    for (let loan of loans) {
+        const { from, to, amount } = loan;
+
+        let debtor = debts.find(d => d.username === from);
+        let creditor = debts.find(d => d.username === to);
+
+        if (!debtor) {
+            debtor = { username: from, balance: 0 };
+            debts.push(debtor);
+        }
+        if (!creditor) {
+            creditor = { username: to, balance: 0 };
+            debts.push(creditor);
+        }
+
+        debtor.balance -= amount;
+        creditor.balance += amount;
+    }
 
     let creditors = debts.filter(d => d.balance > 0).sort((a, b) => b.balance - a.balance);
     let debtors = debts.filter(d => d.balance < 0).sort((a, b) => a.balance - b.balance);

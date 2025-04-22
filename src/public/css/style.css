@@ -983,11 +983,6 @@ footer {
   color: var(--text);
 }
 
-.transaction-date i {
-  margin-right: 10px;
-  color: var(--accent);
-}
-
 .transaction-amounts {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
