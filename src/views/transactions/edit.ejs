@@ -1,40 +1,62 @@
 <% layout('./layouts/layout') -%>
 
 <div class="row">
-    <div class="col-md-6 offset-md-3 mb-5">
+    <div class="col-md-10 offset-md-1 mb-5">
         <div class="d-flex justify-content-between align-items-center mb-4">
             <h3 class="m-0">Modifica Transazione</h3>
-            <button type="submit" form="transactionForm" class="custom-button">
-                <i class="bi bi-check2-circle me-1"></i> Salva
-            </button>
+            <div class="d-flex gap-2">
+                <button type="submit" form="transactionForm" class="custom-button">
+                    <i class="bi bi-check2-circle me-1"></i> Salva Modifiche
+                </button>
+            </div>
         </div>
         
         <div class="compact-total-counter mb-4">
             <div class="fw-bold">Totale: <span id="totalAmount">€0.00</span></div>
+            <div class="small">Partecipanti: <span id="participantCount">0</span></div>
         </div>
         
         <form id="transactionForm" class="validated-form" method="post" action="/transactions/<%= transaction._id %>?_method=PATCH" novalidate>
             <div class="mb-4">
                 <% if(group.participants && group.participants.length > 0) { %>
                     <div class="custom-card mb-4">
-                        <div class="custom-card-header">Membri del gruppo</div>
+                        <div class="custom-card-header d-flex justify-content-between align-items-center">
+                            <span>Membri del gruppo</span>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="selectAllMembers">
+                                <label class="form-check-label small" for="selectAllMembers">
+                                    Seleziona tutti
+                                </label>
+                            </div>
+                        </div>
                         <div class="custom-card-body">
-                            <% for(let p of group.participants) { %>
-                                <div class="row mb-3">
-                                    <div class="col">
+                            <% for(let i = 0; i < group.participants.length; i++) { 
+                                const p = group.participants[i];
+                                const userAmount = transaction.amounts.find(amt => amt.user === p.username);
+                                const amount = userAmount ? userAmount.amount : 0;
+                                const isParticipating = !transaction.exemptions || !transaction.exemptions.includes(p.username);
+                            %>
+                                <div class="row mb-3 participant-row" data-user-type="member">
+                                    <div class="col-6">
                                         <input type="text" class="form-control custom-input" name="user[]" value="<%= p.username %>" readonly>
                                     </div>
                                     <div class="col-4">
                                         <div class="input-group">
-                                            <% 
-                                                let existingAmount = 0;
-                                                const userEntry = transaction.amounts.find(a => a.user === p.username && !a.isInvited);
-                                                if (userEntry) {
-                                                    existingAmount = userEntry.amount;
-                                                }
-                                            %>
                                             <span class="input-group-text custom-input-group">€</span>
-                                            <input type="number" min="0" step="0.01" class="form-control custom-input amount-input no-spinner" name="amount[]" placeholder="0.00" value="<%= existingAmount %>">
+                                            <input type="number" min="0" step="0.01" class="form-control custom-input amount-input no-spinner" 
+                                                   name="amount[]" placeholder="0.00" value="<%= amount > 0 ? amount.toFixed(2) : '' %>">
+                                        </div>
+                                    </div>
+                                    <div class="col d-flex align-items-center">
+                                        <div class="form-check form-switch">
+                                            <input class="form-check-input participation-checkbox" type="checkbox" 
+                                                   id="participate_member_<%= i %>" 
+                                                   name="shouldParticipate[]" 
+                                                   value="<%= p.username %>" 
+                                                   <%= isParticipating ? 'checked' : '' %>>
+                                            <label class="form-check-label small" for="participate_member_<%= i %>">
+                                                Partecipa
+                                            </label>
                                         </div>
                                     </div>
                                 </div>
@@ -45,14 +67,27 @@
                 
                 <% if(group.invitedUsers && group.invitedUsers.length > 0) { %>
                     <div class="custom-card">
-                        <div class="custom-card-header">Utenti invitati</div>
+                        <div class="custom-card-header d-flex justify-content-between align-items-center">
+                            <span>Utenti invitati</span>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="selectAllInvited">
+                                <label class="form-check-label small" for="selectAllInvited">
+                                    Seleziona tutti
+                                </label>
+                            </div>
+                        </div>
                         <div class="custom-card-body">
-                            <% for(let i = 0; i < group.invitedUsers.length; i++) { %>
-                                <div class="row mb-3">
-                                    <div class="col">
+                            <% for(let i = 0; i < group.invitedUsers.length; i++) { 
+                                const invitedUser = group.invitedUsers[i];
+                                const userAmount = transaction.amounts.find(amt => amt.user === invitedUser.name && amt.isInvited === true);
+                                const amount = userAmount ? userAmount.amount : 0;
+                                const isParticipating = !transaction.exemptions || !transaction.exemptions.includes(invitedUser.name);
+                            %>
+                                <div class="row mb-3 participant-row" data-user-type="invited">
+                                    <div class="col-6">
                                         <div class="input-group">
                                             <input type="text" class="form-control custom-input" name="invitedUsername[]" 
-                                                value="<%= group.invitedUsers[i].name %>" readonly>
+                                                value="<%= invitedUser.name %>" readonly>
                                             <span class="input-group-text custom-input-group" title="Utente invitato">
                                                 <i class="bi bi-envelope"></i>
                                             </span>
@@ -60,15 +95,21 @@
                                     </div>
                                     <div class="col-4">
                                         <div class="input-group">
-                                            <% 
-                                                let existingInvitedAmount = 0;
-                                                const invitedEntry = transaction.amounts.find(a => a.user === group.invitedUsers[i].name && a.isInvited);
-                                                if (invitedEntry) {
-                                                    existingInvitedAmount = invitedEntry.amount;
-                                                }
-                                            %>
                                             <span class="input-group-text custom-input-group">€</span>
-                                            <input type="number" min="0" step="0.01" class="form-control custom-input amount-input no-spinner" name="invitedAmount[]" placeholder="0.00" value="<%= existingInvitedAmount %>">
+                                            <input type="number" min="0" step="0.01" class="form-control custom-input amount-input no-spinner" 
+                                                   name="invitedAmount[]" placeholder="0.00" value="<%= amount > 0 ? amount.toFixed(2) : '' %>">
+                                        </div>
+                                    </div>
+                                    <div class="col d-flex align-items-center">
+                                        <div class="form-check form-switch">
+                                            <input class="form-check-input participation-checkbox" type="checkbox" 
+                                                   id="participate_invited_<%= i %>" 
+                                                   name="shouldParticipateInvited[]" 
+                                                   value="<%= invitedUser.name %>" 
+                                                   <%= isParticipating ? 'checked' : '' %>>
+                                            <label class="form-check-label small" for="participate_invited_<%= i %>">
+                                                Partecipa
+                                            </label>
                                         </div>
                                     </div>
                                 </div>
@@ -76,6 +117,11 @@
                         </div>
                     </div>
                 <% } %>
+            </div>
+            
+            <div class="alert alert-info" id="participationInfo" style="display: none;">
+                <i class="bi bi-info-circle me-2"></i>
+                <span id="participationText"></span>
             </div>
             
             <div class="mb-4">
@@ -96,10 +142,11 @@
                     for(let i = 0; i < categories.length; i++) { 
                         const cat = categories[i];
                         const emoji = categoryEmojis[cat] || "📌";
+                        const isSelected = transaction.category === cat;
                     %>
                         <div class="category-item">
                             <input type="radio" name="category" id="cat-<%= cat %>" value="<%= cat %>" 
-                                class="category-input" <%= transaction.category === cat ? 'checked' : '' %>>
+                                class="category-input" <%= isSelected ? 'checked' : '' %>>
                             <label for="cat-<%= cat %>" class="category-box">
                                 <span class="category-emoji"><%= emoji %></span>
                                 <span class="category-name"><%= cat %></span>
@@ -111,10 +158,11 @@
             
             <div class="mb-4">
                 <label for="description" class="form-label">Descrizione (opzionale)</label>
-                <textarea class="form-control custom-input" id="description" name="description" rows="3" placeholder="Inserisci una descrizione della transazione..."><%= transaction.description %></textarea>
+                <textarea class="form-control custom-input" id="description" name="description" rows="3" 
+                          placeholder="Inserisci una descrizione della transazione..."><%= transaction.description || '' %></textarea>
             </div>
 
-            <button type="submit" class="btn custom-button w-100">Salva</button>
+            <button type="submit" class="btn custom-button w-100">Salva Modifiche</button>
         </form>
     </div>
 </div>
@@ -123,29 +171,158 @@
 document.addEventListener('DOMContentLoaded', function() {
     const amountInputs = document.querySelectorAll('.amount-input');
     const totalAmountSpan = document.getElementById('totalAmount');
+    const participantCountSpan = document.getElementById('participantCount');
     const totalCounter = document.querySelector('.compact-total-counter');
+    const participationCheckboxes = document.querySelectorAll('.participation-checkbox');
+    const participationInfo = document.getElementById('participationInfo');
+    const participationText = document.getElementById('participationText');
     
-    function calculateTotal() {
+    // Gestione checkbox "Seleziona tutti"
+    const selectAllMembers = document.getElementById('selectAllMembers');
+    const selectAllInvited = document.getElementById('selectAllInvited');
+    
+    function updateSelectAllState() {
+        // Aggiorna stato "Seleziona tutti" per membri
+        if (selectAllMembers) {
+            const memberCheckboxes = document.querySelectorAll('[data-user-type="member"] .participation-checkbox');
+            const checkedMembers = document.querySelectorAll('[data-user-type="member"] .participation-checkbox:checked');
+            selectAllMembers.checked = memberCheckboxes.length > 0 && memberCheckboxes.length === checkedMembers.length;
+            selectAllMembers.indeterminate = checkedMembers.length > 0 && checkedMembers.length < memberCheckboxes.length;
+        }
+        
+        // Aggiorna stato "Seleziona tutti" per invitati
+        if (selectAllInvited) {
+            const invitedCheckboxes = document.querySelectorAll('[data-user-type="invited"] .participation-checkbox');
+            const checkedInvited = document.querySelectorAll('[data-user-type="invited"] .participation-checkbox:checked');
+            selectAllInvited.checked = invitedCheckboxes.length > 0 && invitedCheckboxes.length === checkedInvited.length;
+            selectAllInvited.indeterminate = checkedInvited.length > 0 && checkedInvited.length < invitedCheckboxes.length;
+        }
+    }
+    
+    // Event listener per "Seleziona tutti membri"
+    if (selectAllMembers) {
+        selectAllMembers.addEventListener('change', function() {
+            const memberCheckboxes = document.querySelectorAll('[data-user-type="member"] .participation-checkbox');
+            memberCheckboxes.forEach(checkbox => {
+                checkbox.checked = this.checked;
+                updateParticipantRow(checkbox);
+            });
+            calculateTotalAndParticipants();
+        });
+    }
+    
+    // Event listener per "Seleziona tutti invitati"
+    if (selectAllInvited) {
+        selectAllInvited.addEventListener('change', function() {
+            const invitedCheckboxes = document.querySelectorAll('[data-user-type="invited"] .participation-checkbox');
+            invitedCheckboxes.forEach(checkbox => {
+                checkbox.checked = this.checked;
+                updateParticipantRow(checkbox);
+            });
+            calculateTotalAndParticipants();
+        });
+    }
+    
+    function updateParticipantRow(checkbox) {
+        const row = checkbox.closest('.participant-row');
+        const amountInput = row.querySelector('.amount-input');
+        
+        if (checkbox.checked) {
+            row.classList.remove('excluded');
+            amountInput.disabled = false;
+            amountInput.style.backgroundColor = '';
+        } else {
+            row.classList.add('excluded');
+            amountInput.disabled = true;
+            amountInput.value = '';
+        }
+    }
+    
+    function calculateTotalAndParticipants() {
         let total = 0;
-        amountInputs.forEach(input => {
-            const value = parseFloat(input.value) || 0;
-            total += value;
+        let participantCount = 0;
+        const exemptedUsers = [];
+        const participatingUsers = [];
+        
+        // Calcola totale e conta partecipanti
+        participationCheckboxes.forEach(checkbox => {
+            const row = checkbox.closest('.participant-row');
+            const amountInput = row.querySelector('.amount-input');
+            const username = checkbox.value;
+            
+            if (checkbox.checked) {
+                participantCount++;
+                participatingUsers.push(username);
+                const value = parseFloat(amountInput.value) || 0;
+                total += value;
+            } else {
+                exemptedUsers.push(username);
+            }
         });
         
+        // Aggiorna il display
         totalAmountSpan.textContent = `€${total.toFixed(2)}`;
+        participantCountSpan.textContent = participantCount;
         
+        // Mostra informazioni sui partecipanti
+        if (exemptedUsers.length > 0) {
+            participationInfo.style.display = 'block';
+            participationText.textContent = `Utenti esclusi dalla divisione: ${exemptedUsers.join(', ')}`;
+        } else {
+            participationInfo.style.display = 'none';
+        }
+        
+        // Animazione
         totalCounter.classList.add('pulse');
-        
         setTimeout(() => {
             totalCounter.classList.remove('pulse');
         }, 500);
         
-        return total;
+        // Aggiorna stato dei checkbox "Seleziona tutti"
+        updateSelectAllState();
+        
+        return { total, participantCount, exemptedUsers };
     }
     
-    amountInputs.forEach(input => {
-        input.addEventListener('input', calculateTotal);
+    // Event listeners per i checkbox di partecipazione
+    participationCheckboxes.forEach(checkbox => {
+        checkbox.addEventListener('change', function() {
+            updateParticipantRow(this);
+            calculateTotalAndParticipants();
+        });
     });
-    calculateTotal();
+    
+    // Event listeners per gli input degli importi
+    amountInputs.forEach(input => {
+        input.addEventListener('input', calculateTotalAndParticipants);
+    });
+    
+    // Inizializza lo stato
+    participationCheckboxes.forEach(checkbox => {
+        updateParticipantRow(checkbox);
+    });
+    calculateTotalAndParticipants();
+    
+    // Gestione del form submit per includere le esenzioni
+    document.getElementById('transactionForm').addEventListener('submit', function(e) {
+        const exemptedUsers = [];
+        
+        participationCheckboxes.forEach(checkbox => {
+            if (!checkbox.checked) {
+                exemptedUsers.push(checkbox.value);
+            }
+        });
+        
+        // Aggiungi campo nascosto con le esenzioni
+        if (exemptedUsers.length > 0) {
+            exemptedUsers.forEach(user => {
+                const exemptionsInput = document.createElement('input');
+                exemptionsInput.type = 'hidden';
+                exemptionsInput.name = 'exemptedUsers[]';
+                exemptionsInput.value = user;
+                this.appendChild(exemptionsInput);
+            });
+        }
+    });
 });
 </script>

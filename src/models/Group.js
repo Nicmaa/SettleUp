@@ -13,7 +13,7 @@ const groupSchema = new Schema({
     description: {
         type: String,
         trim: true,
-        maxlength: [500, 'Il nome del gruppo deve avere meno di 500 caratteri'],
+        maxlength: [500, 'La descrizione deve avere meno di 500 caratteri'],
     },
     image: { type: String, default: '/images/default_group.jpg' },
     owner: { type: Schema.Types.ObjectId, ref: 'User', required: true },
@@ -42,16 +42,124 @@ groupSchema.virtual('participantsCount').get(function () {
 });
 
 groupSchema.virtual('totalSpent').get(function () {
-    return this.transactions.reduce((sum, transaction) => sum + transaction.amounts.reduce((s, p) => s + p.amount, 0), 0);
+    return this.transactions.reduce((sum, transaction) => sum + transaction.totalAmount, 0);
 });
+
+groupSchema.statics.calculateBalances = async function (groupId) {
+    const group = await this.findById(groupId).populate('transactions');
+    if (!group) throw new Error(`Gruppo con ID ${groupId} non trovato`);
+
+    const transactions = group.transactions;
+
+    if (!transactions || transactions.length === 0) {
+        return { transactionsToSettle: [] };
+    }
+
+    // Filtra transazioni valide
+    const validTransactions = transactions.filter(t =>
+        t.amounts &&
+        Array.isArray(t.amounts) &&
+        t.amounts.length > 0 &&
+        t.amounts.every(a => a.user !== undefined && a.amount !== undefined)
+    );
+
+    // Raccogli tutti i partecipanti
+    const allParticipants = new Set();
+    validTransactions.forEach(t => {
+        t.amounts.forEach(({ user }) => {
+            const username = typeof user === 'string' ? user :
+                (user.username ? user.username : user.toString());
+            allParticipants.add(username);
+        });
+    });
+
+    // Inizializza i bilanci
+    const balances = {};
+    allParticipants.forEach(user => {
+        balances[user] = 0;
+    });
+
+    // Processa ogni transazione (spesa condivisa)
+    validTransactions.forEach(transaction => {
+        const exemptedUsers = Array.isArray(transaction.exemptions) ? transaction.exemptions : [];
+
+        const totalAmount = transaction.totalAmount;
+
+        const eligibleParticipants = Array.from(allParticipants).filter(user =>
+            !exemptedUsers.includes(user)
+        );
+
+        if (eligibleParticipants.length === 0) {
+            transaction.amounts.forEach(({ user, amount }) => {
+                const username = typeof user === 'string' ? user :
+                    (user.username ? user.username : user.toString());
+                balances[username] += amount;
+            });
+            return;
+        }
+
+        const sharePerPerson = totalAmount / eligibleParticipants.length;
+
+        allParticipants.forEach(user => {
+            const amountPaid = transaction.amounts.find(a => {
+                const username = typeof a.user === 'string' ? a.user :
+                    (a.user.username ? a.user.username : a.user.toString());
+                return username === user;
+            })?.amount || 0;
+
+            if (eligibleParticipants.includes(user)) {
+                balances[user] += amountPaid - sharePerPerson;
+            } else {
+                balances[user] += amountPaid;
+            }
+        });
+    });
+
+    const creditors = [];
+    const debtors = [];
+
+    Object.entries(balances).forEach(([user, balance]) => {
+        if (balance > 0.01) {
+            creditors.push({ username: user, balance: balance });
+        } else if (balance < -0.01) {
+            debtors.push({ username: user, balance: Math.abs(balance) });
+        }
+    });
+
+    const transactionsToSettle = [];
+    let i = 0, j = 0;
+
+    while (i < debtors.length && j < creditors.length) {
+        const debtor = debtors[i];
+        const creditor = creditors[j];
+        const amountToPay = Math.min(debtor.balance, creditor.balance);
+
+        transactionsToSettle.push({
+            from: debtor.username,
+            to: creditor.username,
+            amount: parseFloat(amountToPay.toFixed(2))
+        });
+
+        debtor.balance -= amountToPay;
+        creditor.balance -= amountToPay;
+
+        if (debtor.balance < 0.01) i++;
+        if (creditor.balance < 0.01) j++;
+    }
+
+    return {
+        transactionsToSettle,
+        individualBalances: balances
+    };
+};
 
 groupSchema.methods.currentUserBalance = function (currentUser) {
     const username = currentUser.username;
-    
-    const userTransactions = this.balance.filter(entry => 
+
+    const userTransactions = this.balance.filter(entry =>
         entry.from === username || entry.to === username
     );
-    
+
     const totalAmount = userTransactions.reduce((sum, entry) => {
         if (entry.from === username) {
             return sum - parseFloat(entry.amount);
@@ -64,87 +172,17 @@ groupSchema.methods.currentUserBalance = function (currentUser) {
     return parseFloat(totalAmount.toFixed(2));
 };
 
-groupSchema.statics.calculateBalances = function (transactions, userCount, loans = []) {
-    if (!transactions || !Array.isArray(transactions)) {
-        return { transactionsToSettle: [] };
-    }
+groupSchema.statics.refreshBalance = async function (groupId) {
+    const group = await this.findById(groupId).populate('transactions');
+    if (!group) throw new Error(`Gruppo con ID ${groupId} non trovato`);
 
-    transactions = transactions.filter(t => 
-        t.amounts && 
-        Array.isArray(t.amounts) && 
-        t.amounts.length > 0 && 
-        t.amounts.every(a => a.user !== undefined && a.amount !== undefined)
-    );
+    const { transactionsToSettle } = await this.calculateBalances(groupId);
+    group.balance = transactionsToSettle;
+    await group.save();
 
-    if (transactions.length === 0) {
-        return { transactionsToSettle: [] };
-    }
+    return group;
+};
 
-    let balances = transactions.reduce((acc, t) => {
-        t.amounts.forEach(({ user, amount }) => {
-            const username = typeof user === 'string' ? user : 
-                             (user.username ? user.username : user.toString());
-            
-            acc[username] = (acc[username] || 0) + amount;
-        });
-        return acc;
-    }, {});
-
-    const total = Object.values(balances).reduce((sum, amount) => sum + amount, 0);
-    const perPerson = total / userCount;
-
-    let debts = Object.entries(balances).map(([username, amount]) => {
-        return {
-            username,
-            balance: amount - perPerson
-        };
-    });
-
-    for (let loan of loans) {
-        const { from, to, amount } = loan;
-
-        let debtor = debts.find(d => d.username === from);
-        let creditor = debts.find(d => d.username === to);
-
-        if (!debtor) {
-            debtor = { username: from, balance: 0 };
-            debts.push(debtor);
-        }
-        if (!creditor) {
-            creditor = { username: to, balance: 0 };
-            debts.push(creditor);
-        }
-
-        debtor.balance -= amount;
-        creditor.balance += amount;
-    }
-
-    let creditors = debts.filter(d => d.balance > 0).sort((a, b) => b.balance - a.balance);
-    let debtors = debts.filter(d => d.balance < 0).sort((a, b) => a.balance - b.balance);
-
-    let transactionsToSettle = [];
-    let i = 0, j = 0;
-
-    while (i < debtors.length && j < creditors.length) {
-        let debtor = debtors[i];
-        let creditor = creditors[j];
-        let amountToPay = Math.min(-debtor.balance, creditor.balance);
-
-        transactionsToSettle.push({
-            from: debtor.username,
-            to: creditor.username,
-            amount: amountToPay.toFixed(2)
-        });
-
-        debtor.balance += amountToPay;
-        creditor.balance -= amountToPay;
-
-        if (Math.abs(debtor.balance) < 0.01) i++;
-        if (Math.abs(creditor.balance) < 0.01) j++;
-    }
-
-    return { transactionsToSettle };
-}
 
 groupSchema.methods.topSpender = async function () {
     if (!this.transactions || this.transactions.length === 0) {

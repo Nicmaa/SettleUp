@@ -1,5 +1,4 @@
 const mongoose = require('mongoose');
-const Group = require('./Group');
 const Schema = mongoose.Schema;
 
 const transactionSchema = new Schema({
@@ -10,7 +9,7 @@ const transactionSchema = new Schema({
         enum: ['Cibo', 'Trasporti', 'Svago', 'Abbigliamento', 'Lavoro', 'Casa', 'Salute', 'Altro'],
         default: 'Altro'
     },
-    categoryEmoji: { type: String, default: '🔍'},
+    categoryEmoji: { type: String, default: '🔍' },
     amounts: [
         {
             user: { type: String, required: true },
@@ -18,6 +17,7 @@ const transactionSchema = new Schema({
             isInvited: { type: Boolean, default: false }
         }
     ],
+    exemptions: [String],
     createdAt: { type: Date, default: Date.now }
 }, {
     toJSON: { virtuals: true }
@@ -28,19 +28,8 @@ transactionSchema.virtual('formattedDate').get(function () {
     return this.createdAt.toLocaleDateString('it-IT', options);
 });
 
-transactionSchema.statics.refreshBalance = async function (groupId) {
-    const group = await Group.findById(groupId)
-        .populate({
-            path: 'transactions'
-        });
-
-    if (!group) throw new ExpressError(`Gruppo con ID ${groupId} non trovato`, 404);
-
-    const { transactionsToSettle } = Group.calculateBalances(group.transactions, group.participantsCount);
-    group.balance = transactionsToSettle;
-
-    await group.save();
-    return group;
-};
+transactionSchema.virtual('totalAmount').get(function () {
+    return this.amounts.reduce((sum, item) => sum + item.amount, 0);
+});
 
 module.exports = mongoose.model('Transaction', transactionSchema);

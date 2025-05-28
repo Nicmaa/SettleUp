@@ -45,7 +45,8 @@ module.exports.transactionSchema = extendedJoi.object({
       amount: extendedJoi.number().min(0).required(),
       isInvited: extendedJoi.boolean().default(false)
     })
-  ).min(1).required()
+  ).min(1).required(),
+  exemptedUsers: extendedJoi.array()
 }).required();
 
 module.exports.userSchema = extendedJoi.object({
