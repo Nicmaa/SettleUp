@@ -187,7 +187,8 @@ module.exports.validateTransaction = (req, res, next) => {
     const transformedData = {
         description: req.body.description || '',
         category: req.body.category || 'Altro',
-        amounts: amounts
+        amounts: amounts,
+        exemptedUsers: req.body.exemptedUsers || []
     };
 
     const { error } = transactionSchema.validate(transformedData);

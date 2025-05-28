@@ -23,24 +23,33 @@ module.exports.renderNewForm = async (req, res) => {
     res.render('transactions/new', { group, categories });
 };
 
-module.exports.createTransaction = async (req, res) => {
+module.exports.createTransaction = async (req, res, next) => {
     const group = await Group.findById(req.params.id);
-    if (!group) throw new ExpressError("Gruppo non trovato!", 404);
+    if (!group) {
+      req.flash('error', 'Gruppo non trovato!');
+      return res.status(404).redirect('/groups');
+    }
 
-    const { category, description, amounts } = req.body;
+    const { category, description, amounts, exemptedUsers } = req.body;
+
+    if (!category || !amounts) {
+      req.flash('error', 'Dati mancanti nella richiesta.');
+      return res.redirect(`/groups/${req.params.id}`);
+    }
 
     const newTransaction = new Transaction({
-        group: group._id,
-        amounts,
-        description,
-        category,
-        categoryEmoji: categoryEmojis[category]
+      group: group._id,
+      amounts,
+      description,
+      category,
+      categoryEmoji: categoryEmojis[category] || '',
+      exemptions: exemptedUsers || []
     });
 
     await newTransaction.save();
     group.transactions.push(newTransaction._id);
     await group.save();
-    await Transaction.refreshBalance(group._id);
+    await Group.refreshBalance(group._id);
 
     req.flash('success', 'Transazione creata con successo!');
     res.redirect(`/groups/${group._id}`);
@@ -64,15 +73,16 @@ module.exports.editTransaction = async (req, res) => {
     const transaction = await Transaction.findById(req.params.id);
     if (!transaction) throw new ExpressError("Transazione non trovata!", 404);
 
-    const { category, description, amounts } = req.body;
+    const { category, description, amounts, exemptedUsers } = req.body;
 
     transaction.amounts = amounts;
     transaction.description = description;
     transaction.category = category;
     transaction.categoryEmoji = categoryEmojis[category];
+    transaction.exemptions = exemptedUsers || [];
 
     await transaction.save();
-    await Transaction.refreshBalance(transaction.group);
+    await Group.refreshBalance(transaction.group);
 
     req.flash('success', 'Transazione modificata con successo!');
     res.redirect(`/groups/${transaction.group}`);
@@ -88,7 +98,7 @@ module.exports.deleteTransaction = async (req, res) => {
 
     await Transaction.findByIdAndDelete(req.params.id);
 
-    await Transaction.refreshBalance(transaction.group);
+    await Group.refreshBalance(transaction.group);
 
     req.flash('success', 'Transazione eliminata con successo!');
     res.redirect(`/groups/${transaction.group}`);

@@ -39,7 +39,7 @@ module.exports.register = async (req, res) => {
                     arrayFilters: [{ 'elem.user': placeholderName, 'elem.isInvited': true }]
                 }
             );
-            await Transaction.refreshBalance(group._id);
+            await Group.refreshBalance(group._id);
         }
 
         req.login(newUser, err => {

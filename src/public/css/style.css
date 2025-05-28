@@ -1083,13 +1083,25 @@ footer {
 }
 
 .compact-total-counter {
-  background-color: var(--card-bg); 
+  background-color: var(--card-bg);
+  color: white;
+  text-align: center;
   padding: 10px 15px;
   border-radius: 8px;
   display: inline-block;
   box-shadow: var(--shadow);
   transition: all 0.3s ease;
   font-size: 0.95rem;
+}
+
+.participant-row {
+    transition: opacity 0.3s ease, background-color 0.3s ease;
+    padding: 8px;
+    border-radius: 8px;
+}
+
+.participant-row.excluded .amount-input {
+    background-color: #000000 !important;
 }
 
 #totalAmount {
