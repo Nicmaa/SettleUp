@@ -18,6 +18,7 @@ const transactionSchema = new Schema({
         }
     ],
     exemptions: [String],
+    isDebt: { type: Boolean, default: false },
     createdAt: { type: Date, default: Date.now }
 }, {
     toJSON: { virtuals: true }

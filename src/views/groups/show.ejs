@@ -85,29 +85,49 @@
                     <% } else { %>
                         <div class="debt-flow-container">
                             <% group.balance.forEach((settlement, index) => { %>
-                                <div class="debt-flow-item">
-                                    <div class="debt-flow-sender">
-                                        <div class="debt-avatar">
-                                            <%= settlement.from.charAt(0).toUpperCase() %>
+                                <div class="debt-flow-item mb-2 rounded p-2">
+                                    <!-- Riga cliccabile del debito -->
+                                    <div class="d-flex align-items-center justify-content-between"
+                                        data-bs-toggle="collapse" 
+                                        data-bs-target="#settle-<%= index %>" 
+                                        role="button" 
+                                        aria-expanded="false" 
+                                        aria-controls="settle-<%= index %>">
+                                        <div class="d-flex align-items-center">
+                                            <div class="debt-avatar text-white rounded-circle m-2">
+                                                <%= settlement.from.charAt(0).toUpperCase() %>
+                                            </div>
+                                            <span><%= settlement.from %></span>
                                         </div>
-                                        <span><%= settlement.from %></span>
-                                    </div>
-                                    
-                                    <div class="debt-arrow">
-                                        <i class="bi bi-arrow-right"></i>
-                                    </div>
-                                    
-                                    <div class="debt-flow-receiver">
-                                        <div class="debt-avatar">
-                                            <%= settlement.to.charAt(0).toUpperCase() %>
+                                        
+                                        <div>
+                                            <i class="bi bi-arrow-right m-2"></i>
                                         </div>
-                                        <span><%= settlement.to %></span>
+                                        
+                                        <div class="d-flex align-items-center">
+                                            <div class="debt-avatar text-white rounded-circle m-2">
+                                                <%= settlement.to.charAt(0).toUpperCase() %>
+                                            </div>
+                                            <span><%= settlement.to %></span>
+                                        </div>
+                                        
+                                        <div>
+                                            <span class="badge bg-primary m-2">
+                                                €<%= settlement.amount.toFixed(2) %>
+                                            </span>
+                                        </div>
                                     </div>
                                     
-                                    <div class="debt-amount">
-                                        <span class="badge bg-primary">
-                                            €<%= settlement.amount.toFixed(2) %>
-                                        </span>
+                                    <!-- Form nascosto per saldare il debito -->
+                                    <div class="collapse mt-2" id="settle-<%= index %>">
+                                        <div class="card card-body p-2">
+                                            <form method="POST" action="/transactions/<%= group._id %>/settle-debt">
+                                                <input type="hidden" name="from" value="<%= settlement.from %>">
+                                                <input type="hidden" name="to" value="<%= settlement.to %>">
+                                                <input type="hidden" name="amount" value="<%= settlement.amount %>">
+                                                <button type="submit" class="btn btn-success btn-sm">Salda</button>
+                                            </form>
+                                        </div>
                                     </div>
                                 </div>
                             <% }); %>
@@ -117,52 +137,84 @@
             </div>
         </div>
     </div>
-
     <div class="mt-5">
-        <h4 class="card-title mb-4">Cronologia Transazioni</h4>
-        <div class="transaction-timeline">
-            <% for (let t of group.transactions) { %>
-                <div class="transaction-card animate-slide-in">
-                    <div class="transaction-header">
-                        <div class="transaction-date">
-                            <%= t.categoryEmoji %> <%= t.formattedDate %> <%= t.description ? `- ${t.description}` : `` %>
-                        </div>
-                        <div class="transaction-actions dropdown">
-                            <button class="btn btn-sm" type="button" data-bs-toggle="dropdown">
-                                <i class="bi bi-three-dots-vertical"></i>
-                            </button>
-                            <ul class="dropdown-menu dropdown-menu-end">
-                                <li><a class="dropdown-item" href="/transactions/<%= t._id %>/edit">
-                                    <i class="bi bi-pencil me-2"></i>Modifica
-                                </a></li>
-                                <li>
-                                    <form action="/transactions/<%=t._id%>?_method=DELETE" method="post">
-                                        <button 
-                                            class="dropdown-item text-danger"
-                                            type="submit"
-                                            onclick="return confirm('Sicuro di voler eliminare la seguente transazione?')"
-                                        >
-                                            <i class="bi bi-trash me-2"></i>Elimina
-                                        </button>
-                                    </form>
-                                </li>
-                            </ul>
-                        </div>
-                    </div>
-                    <div class="transaction-amounts">
-                        <% for (let a of t.amounts) { %>
-                            <div class="transaction-amount-item">
-                                <% if (a.isInvited) { %>
-                                    <span><%= a.user %> (Invitato)</span>
-                                <% } else { %>
-                                    <span><%= a.user %></span>
-                                <% } %>
-                                <span class="badge bg-primary">€<%= a.amount.toFixed(2) %></span>
+        <% const debts = group.transactions.filter(t => t.isDebt); %>
+        <% if (debts.length > 0) { %>
+            <div class="debt-transactions mb-5">
+                <h4 class="card-title mb-3 text-info">Debiti saldati</h4>
+                <% for (let t of debts) { 
+                    const from = t.amounts.find(a => a.amount > 0);
+                    const to = t.amounts.find(a => a.amount === 0);
+                %>
+                    <div class="debt-card animate-fade-in p-3 mb-3 rounded shadow-sm bg-light border-start border-4 border-success">
+                        <div class="d-flex align-items-center gap-3">
+                            <i class="bi bi-arrow-left-right fs-3 text-success"></i>
+                            <div>
+                                <div class="fw-bold">
+                                    <%= t.formattedDate %> - <%= t.description %>
+                                </div>
+                                <div>
+                                    💸 <strong><%= from?.user %></strong> ha saldato un debito verso <strong><%= to?.user %></strong>
+                                </div>
                             </div>
-                        <% } %>
+                            <span class="badge bg-success ms-auto fs-6">€<%= (from?.amount / 2).toFixed(2) %></span>
+                        </div>
                     </div>
-                </div>
-            <% } %>
-        </div>
+                <% } %>
+            </div>
+        <% } %>
+
+        <% const nonDebts = group.transactions.filter(t => !t.isDebt); %>
+        <% if (nonDebts.length > 0) { %>
+            <h4 class="card-title mb-4">Cronologia Transazioni</h4>
+            <div class="transaction-timeline">
+                <% for (let t of nonDebts) { %>
+                    <div class="transaction-card animate-slide-in">
+                        <div class="transaction-header">
+                            <div class="transaction-date">
+                                <%= t.categoryEmoji %> <%= t.formattedDate %> <%= t.description ? `- ${t.description}` : `` %>
+                            </div>
+                            <div class="transaction-actions dropdown">
+                                <button class="btn btn-sm" type="button" data-bs-toggle="dropdown">
+                                    <i class="bi bi-three-dots-vertical"></i>
+                                </button>
+                                <ul class="dropdown-menu dropdown-menu-end">
+                                    <li><a class="dropdown-item" href="/transactions/<%= t._id %>/edit">
+                                        <i class="bi bi-pencil me-2"></i>Modifica
+                                    </a></li>
+                                    <li>
+                                        <form action="/transactions/<%=t._id%>?_method=DELETE" method="post">
+                                            <button 
+                                                class="dropdown-item text-danger"
+                                                type="submit"
+                                                onclick="return confirm('Sicuro di voler eliminare la seguente transazione?')"
+                                            >
+                                                <i class="bi bi-trash me-2"></i>Elimina
+                                            </button>
+                                        </form>
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+                        <div class="transaction-amounts">
+                            <% for (let a of t.amounts) { %>
+                                <% if (!t.exemptions.includes(a.user)) { %>
+                                    <div class="transaction-amount-item">
+                                        <% if (a.isInvited) { %>
+                                            <span><%= a.user %> (Invitato)</span>
+                                        <% } else { %>
+                                            <span><%= a.user %></span>
+                                        <% } %>
+                                        <span class="badge bg-primary">€<%= a.amount.toFixed(2) %></span>
+                                    </div>
+                                <% } %>
+                            <% } %>
+                        </div>
+                    </div>
+                <% } %>
+            </div>
+        <% } else if (debts.length === 0) { %>
+            <p>Nessuna transazione ancora.</p>
+        <% } %>
     </div>
 </div>

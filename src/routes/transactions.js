@@ -16,4 +16,6 @@ router.route('/:id')
     .patch(isLoggedIn, validateTransaction, catchAsync(transaction.editTransaction))
     .delete(isLoggedIn, catchAsync(transaction.deleteTransaction));
 
+router.post('/:id/settle-debt', isLoggedIn, isGroupOwnerOrParticipant, catchAsync(transaction.settleDebt))
+
 module.exports = router;
