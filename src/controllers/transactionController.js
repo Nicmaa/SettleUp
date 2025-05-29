@@ -26,24 +26,24 @@ module.exports.renderNewForm = async (req, res) => {
 module.exports.createTransaction = async (req, res, next) => {
     const group = await Group.findById(req.params.id);
     if (!group) {
-      req.flash('error', 'Gruppo non trovato!');
-      return res.status(404).redirect('/groups');
+        req.flash('error', 'Gruppo non trovato!');
+        return res.status(404).redirect('/groups');
     }
 
     const { category, description, amounts, exemptedUsers } = req.body;
 
     if (!category || !amounts) {
-      req.flash('error', 'Dati mancanti nella richiesta.');
-      return res.redirect(`/groups/${req.params.id}`);
+        req.flash('error', 'Dati mancanti nella richiesta.');
+        return res.redirect(`/groups/${req.params.id}`);
     }
 
     const newTransaction = new Transaction({
-      group: group._id,
-      amounts,
-      description,
-      category,
-      categoryEmoji: categoryEmojis[category] || '',
-      exemptions: exemptedUsers || []
+        group: group._id,
+        amounts,
+        description,
+        category,
+        categoryEmoji: categoryEmojis[category] || '',
+        exemptions: exemptedUsers || []
     });
 
     await newTransaction.save();
@@ -103,3 +103,39 @@ module.exports.deleteTransaction = async (req, res) => {
     req.flash('success', 'Transazione eliminata con successo!');
     res.redirect(`/groups/${transaction.group}`);
 };
+
+module.exports.settleDebt = async (req, res) => {
+    const { id } = req.params;
+    const { from, to, amount } = req.body;
+
+    const group = await Group.findById(id).populate('participants', 'username');
+    if (!group) throw new ExpressError('Gruppo non trovato');
+
+    const exemptUsers = [
+        ...group.participants
+            .filter(user => user.username !== from && user.username !== to)
+            .map(user => user.username),
+
+        ...group.invitedUsers
+            .filter(user => user.name !== from && user.name !== to)
+            .map(user => user.name)
+    ];
+
+    const newTransaction = new Transaction({
+        group: id,
+        description: `Debito saldato da ${from} a ${to}`,
+        category: 'Altro',
+        amounts: [{ user: from, amount: amount * 2 }, { user: to, amount: 0 }],
+        exemptions: exemptUsers,
+        isDebt: true,
+        createdAt: new Date()
+    });
+
+    await newTransaction.save();
+    group.transactions.push(newTransaction._id);
+    await group.save();
+    await Group.refreshBalance(group._id);
+
+    req.flash('success', 'Debito saldato con successo!');
+    res.redirect(`/groups/${id}`);
+}
