@@ -11,7 +11,6 @@ Manage and split expenses with friends in a simple and organized way.
 - **Frontend**: EJS, Bootstrap
 - **Authentication**: Passport.js
 - **Validation**: Joi
-- **Middleware**: Express Middleware
 
 ## ⚙️ Requirements
 
@@ -29,16 +28,16 @@ SettleUp/src
 ├── controllers/          # Route logic
 ├── models/               # Mongoose schemas
 ├── public/               # Static files (CSS, JS, images)
-│   ├── stylesheets/      # CSS styles
-│   ├── javascript/       # Frontend scripts
+│   ├── css/              # CSS styles
+│   ├── js/               # Frontend scripts
 │   └── images/           # Images
 ├── routes/               # API and page definitions
 ├── views/                # EJS templates
-│   ├── user/             # User pages
-│   ├── group/            # Group pages
-│   ├── transaction/      # Transaction pages
+│   ├── users/            # User pages
+│   ├── groups/           # Group pages
+│   ├── transactions/     # Transaction pages
 │   ├── home.ejs          # Homepage
-│   └── error.ejs         # Error pages
+│   └── error.ejs         # Error page
 ├── index.js              # App entry point
 ├── joiSchema.js          # Joi validation
 ├── middleware.js         # Custom middleware
@@ -85,11 +84,10 @@ If you want to contribute to the project:
 ## 📌 To-Do List
 
 - [ ] Improve debt table (make responsive)
-- [ ] Style detail pages (show pages)
-- [ ] Create user profile page
+- [x] Style detail pages (show pages)
+- [x] Create user profile page
 - [ ] Implement notifications (email and in-app)
-- [ ] Allow creating groups without other registered users
-- [ ] Add more payment options
+- [x] Allow creating groups without other registered users
 
 ## 👤 Author
 
