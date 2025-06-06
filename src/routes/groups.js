@@ -19,4 +19,6 @@ router.route('/:id')
 
 router.get('/:id/edit', isLoggedIn, isGroupOwner, catchAsync(group.renderEditForm));
 
+router.post('/:id/optimize', isLoggedIn, catchAsync(group.optimize));
+
 module.exports = router;

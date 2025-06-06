@@ -107,3 +107,12 @@ module.exports.deleteGroup = async (req, res) => {
     req.flash('success', 'Gruppo eliminato con successo!');
     res.redirect('/groups');
 };
+
+module.exports.optimize = async (req, res) => {
+    const { id } = req.params;
+    const { totalAmount, exemptedUsers } = req.body;
+
+    const optimized = await Group.recommendPaymentSplit(id, totalAmount, exemptedUsers);
+
+    res.json(optimized);
+}

@@ -24,7 +24,7 @@
                 <div class="group-card-body">
                   <div class="d-flex justify-content-between mb-3">
                     <div class="stats-badge">
-                      <i class="bi bi-receipt"></i> € <%= group.totalSpent || 0 %> spesi
+                      <i class="bi bi-receipt"></i> € <%= group.totalSpent.toFixed(2) || 0 %> spesi
                     </div>
                     <div class="stats-badge">
                       <i class="bi bi-calendar3"></i> <%= group.transactionCount || 0 %>
