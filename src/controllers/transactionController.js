@@ -29,7 +29,7 @@ module.exports.createTransaction = async (req, res, next) => {
         req.flash('error', 'Gruppo non trovato!');
         return res.status(404).redirect('/groups');
     }
-
+    
     const { category, description, amounts, exemptedUsers } = req.body;
 
     if (!category || !amounts) {

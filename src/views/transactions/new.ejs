@@ -3,7 +3,7 @@
 <div class="row">
     <div class="col-md-10 offset-md-1 mb-5">
         <div class="d-flex justify-content-between align-items-center mb-4">
-            <h3 class="m-0">Nuova Transazione</h3>
+            <h3 class="fw-bold m-0">Nuova Transazione</h3>
             <button type="submit" form="transactionForm" class="custom-button">
                 <i class="bi bi-check2-circle me-1"></i> Salva
             </button>
@@ -13,7 +13,29 @@
             <div class="fw-bold">Totale: <span id="totalAmount">€0.00</span></div>
             <div class="small">Partecipanti: <span id="participantCount">0</span></div>
         </div>
-        
+        <div class="mb-4">
+            <label class="form-label mb-1">
+                <i class="bi bi-calculator me-2"></i>
+                Inserisci il totale per la divisione ottimizzata automatica
+            </label>
+            <input type="number" class="form-control custom-input amount-input no-spinner" id="smartTotalInput" placeholder="€0.00" min="0">
+        </div>
+        <div id="optimizationSection" class="optimization-section" style="display: none;">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h5 class="m-0">
+                    <i class="bi bi-magic me-2"></i>
+                    Divisione Suggerita
+                    <span class="loading-spinner" id="loadingSpinner" style="display: none;"></span>
+                </h5>
+                <button class="btn-outline rounded applySuggestionBtn" id="applySuggestionBtn">
+                    <i class="bi bi-check-all me-1"></i>
+                    Applica Suggerimento
+                </button>
+            </div>
+            <div id="optimizationContent">
+                <!-- Il contenuto della divisione ottimizzata apparirà qui -->
+            </div>
+        </div>
         <form id="transactionForm" class="validated-form" method="post" action="/transactions/new/<%= group._id %>" novalidate>
             <div class="mb-4">
                 <% if(group.participants && group.participants.length > 0) { %>
@@ -156,13 +178,21 @@
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     const amountInputs = document.querySelectorAll('.amount-input');
+    const smartTotalInput = document.getElementById('smartTotalInput');
     const totalAmountSpan = document.getElementById('totalAmount');
     const participantCountSpan = document.getElementById('participantCount');
     const totalCounter = document.querySelector('.compact-total-counter');
     const participationCheckboxes = document.querySelectorAll('.participation-checkbox');
     const participationInfo = document.getElementById('participationInfo');
     const participationText = document.getElementById('participationText');
+    const optimizationSection = document.getElementById('optimizationSection');
+    const optimizationContent = document.getElementById('optimizationContent');
+    const loadingSpinner = document.getElementById('loadingSpinner');
+    const applySuggestionBtn = document.getElementById('applySuggestionBtn');
     
+    let currentSuggestions = [];
+    let optimizationTimeout;
+
     // Gestione checkbox "Seleziona tutti"
     const selectAllMembers = document.getElementById('selectAllMembers');
     const selectAllInvited = document.getElementById('selectAllInvited');
@@ -215,11 +245,11 @@ document.addEventListener('DOMContentLoaded', function() {
         
         if (checkbox.checked) {
             row.classList.remove('excluded');
-            amountInput.disabled = false;
+            amountInput.readOnly = false;
             amountInput.style.backgroundColor = '';
         } else {
             row.classList.add('excluded');
-            amountInput.disabled = true;
+            amountInput.readOnly = true;
             amountInput.value = '';
         }
     }
@@ -246,11 +276,9 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
         
-        // Aggiorna il display
         totalAmountSpan.textContent = `€${total.toFixed(2)}`;
         participantCountSpan.textContent = participantCount;
         
-        // Mostra informazioni sui partecipanti
         if (exemptedUsers.length > 0) {
             participationInfo.style.display = 'block';
             participationText.textContent = `Utenti esclusi dalla divisione: ${exemptedUsers.join(', ')}`;
@@ -258,18 +286,151 @@ document.addEventListener('DOMContentLoaded', function() {
             participationInfo.style.display = 'none';
         }
         
-        // Animazione
         totalCounter.classList.add('pulse');
         setTimeout(() => {
             totalCounter.classList.remove('pulse');
         }, 500);
         
-        // Aggiorna stato dei checkbox "Seleziona tutti"
         updateSelectAllState();
         
         return { total, participantCount, exemptedUsers };
     }
     
+    async function showOptimizationSuggestion(totalAmount, exemptedUsers) {
+        const groupId = "<%= group._id %>";
+        if (totalAmount <= 0) {
+            optimizationSection.style.display = 'none';
+            return;
+        }
+    
+        const res = await fetch(`/groups/${groupId}/optimize`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ totalAmount, exemptedUsers }),
+        });
+        
+        const optimizationData = await res.json();
+        
+        if (optimizationData.recommendedPayments) {
+            optimizationData.recommendedPayments.forEach(payment => {
+                currentSuggestions.push({
+                    name: payment.user,
+                    suggestedAmount: payment.amount
+                });
+            });
+        }
+
+        let suggestionHtml = '<div class="row">';
+        
+        if (optimizationData.recommendedPayments && optimizationData.recommendedPayments.length > 0) {
+            suggestionHtml += `
+                <div class="col-12 mb-4">
+                    <div class="custom-card">
+                        <div class="custom-card-header">
+                            <h5 class="mb-0">Pagamento Raccomandato</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+            `;
+            
+            optimizationData.recommendedPayments.forEach(payment => {
+                suggestionHtml += `
+                    <div class="col-md-6 mb-2">
+                        <div class="d-flex justify-content-between align-items-center p-3 rounded" style="border: 0.1px solid #4e54c8 ">
+                            <div>
+                                <strong>${payment.user}</strong>
+                            </div>
+                            <div class="text-end">
+                                <div class="fw-bold text-success">€${payment.amount.toFixed(2)}</div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+        }
+            
+        optimizationContent.innerHTML = suggestionHtml;
+        optimizationSection.style.display = 'block';
+        optimizationSection.classList.add('active');
+    }
+
+    function applySuggestions() {
+        
+        document.querySelectorAll('.participant-row').forEach(row => {
+            const amountInput = row.querySelector('.amount-input');
+            if (amountInput) {
+                amountInput.value = '0.00';
+            }
+        });
+
+        currentSuggestions.forEach(suggestion => {
+            const participantRow = Array.from(document.querySelectorAll('.participant-row')).find(row => {
+                const nameInput = row.querySelector('input[name="user[]"], input[name="invitedUsername[]"]');
+                return nameInput && nameInput.value === suggestion.name;
+            });
+            
+            if (participantRow) {
+                const amountInput = participantRow.querySelector('.amount-input');
+                amountInput.value = suggestion.suggestedAmount.toFixed(2);
+                
+                // Animazione di evidenziazione
+                amountInput.style.transition = 'all 0.3s ease';
+                amountInput.style.backgroundColor = '#086319';
+                amountInput.style.borderColor = '#28a745';
+                
+                setTimeout(() => {
+                    amountInput.style.backgroundColor = '';
+                    amountInput.style.borderColor = '';
+                }, 1000);
+            }
+        });
+        
+        calculateTotalAndParticipants();
+        
+        // Feedback visivo
+        applySuggestionBtn.innerHTML = '<i class="bi bi-check-all me-1"></i>Applicato!';
+        applySuggestionBtn.style.backgroundColor = '#4e54c8';
+        applySuggestionBtn.style.color = 'white';
+        
+        setTimeout(() => {
+            applySuggestionBtn.innerHTML = '<i class="bi bi-check-all me-1"></i>Applica Suggerimento';
+            applySuggestionBtn.style.backgroundColor = '';
+            optimizationSection.style.display = 'none';
+        }, 100);
+    }
+
+    function triggerOptimization() {
+        // Debounce per evitare troppe chiamate
+        clearTimeout(optimizationTimeout);
+        
+        const smartTotal = parseFloat(smartTotalInput.value) || 0;
+        const exemptedUsers = [];
+        
+        // Raccogli gli utenti esclusi
+        document.querySelectorAll('.participation-checkbox').forEach(checkbox => {
+            if (!checkbox.checked) {
+                exemptedUsers.push(checkbox.value);
+            }
+        });
+        
+        const activeParticipants = document.querySelectorAll('.participation-checkbox:checked').length;
+        
+        if (smartTotal > 0 && activeParticipants > 0) {
+            loadingSpinner.style.display = 'inline-block';
+            
+            optimizationTimeout = setTimeout(() => {
+                showOptimizationSuggestion(smartTotal, exemptedUsers);
+                loadingSpinner.style.display = 'none';
+            }, 500);
+        } else {
+            optimizationSection.style.display = 'none';
+        }
+    }
+
+    smartTotalInput.addEventListener('input', triggerOptimization);
+    
+    applySuggestionBtn.addEventListener('click', applySuggestions);
+
     // Event listeners per i checkbox di partecipazione
     participationCheckboxes.forEach(checkbox => {
         checkbox.addEventListener('change', function() {

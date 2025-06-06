@@ -100,17 +100,14 @@ groupSchema.statics.calculateBalances = async function (groupId) {
 
         const sharePerPerson = totalAmount / eligibleParticipants.length;
 
-        allParticipants.forEach(user => {
-            const amountPaid = transaction.amounts.find(a => {
-                const username = typeof a.user === 'string' ? a.user :
-                    (a.user.username ? a.user.username : a.user.toString());
-                return username === user;
-            })?.amount || 0;
+        transaction.amounts.forEach(({ user, amount }) => {
+            const username = typeof user === 'string' ? user :
+                (user.username ? user.username : user.toString());
 
-            if (eligibleParticipants.includes(user)) {
-                balances[user] += amountPaid - sharePerPerson;
+            if (eligibleParticipants.includes(username)) {
+                balances[username] += amount - sharePerPerson;
             } else {
-                balances[user] += amountPaid;
+                balances[username] += amount;
             }
         });
     });
@@ -183,7 +180,6 @@ groupSchema.statics.refreshBalance = async function (groupId) {
     return group;
 };
 
-
 groupSchema.methods.topSpender = async function () {
     if (!this.transactions || this.transactions.length === 0) {
         return {
@@ -215,5 +211,68 @@ groupSchema.methods.topSpender = async function () {
         amount: topAmount
     };
 };
+
+groupSchema.statics.recommendPaymentSplit = async function (groupId, amount, exemptedUsers = []) {
+    
+    const group = await this.findById(groupId).populate('transactions');
+    if (!group) throw new Error(`Gruppo con ID ${groupId} non trovato`);
+
+    const { individualBalances } = await this.calculateBalances(groupId);
+    if (!individualBalances || Object.keys(individualBalances).length === 0) {
+        throw new Error('Impossibile calcolare i bilanci: dati mancanti o transazioni assenti.');
+    }
+
+    const users = Object.keys(individualBalances).filter(user => !exemptedUsers.includes(user));
+    const n = users.length;
+    
+    if (n === 0) return { recommendedPayments: [] };
+
+    let bestSplit = null;
+    let minVariance = Infinity;
+
+    // Testa tutte le possibili divisioni con 1, 2, ..., n partecipanti
+    for (let k = 1; k <= n; k++) {
+        const combinations = getCombinations(users, k);
+        for (const combo of combinations) {
+            const share = amount / combo.length;
+
+            // Simula i nuovi bilanci dopo che questi utenti pagano la quota
+            const simulatedBalances = { ...individualBalances };
+            for (const user of combo) {
+                simulatedBalances[user] += share;
+            }
+
+            // Calcola la varianza (quanto sono sbilanciati i bilanci dopo la spesa)
+            const values = Object.values(simulatedBalances);
+            const mean = values.reduce((sum, v) => sum + v, 0) / values.length;
+            const variance = values.reduce((sum, v) => sum + Math.pow(v - mean, 2), 0) / values.length;
+
+            if (variance < minVariance) {
+                minVariance = variance;
+                bestSplit = combo.map(user => ({ user, amount: parseFloat((amount / combo.length).toFixed(2)) }));
+            }
+        }
+    }
+
+    return { recommendedPayments: bestSplit };
+};
+
+// Helper: tutte le combinazioni di k elementi da array
+function getCombinations(array, k) {
+    const results = [];
+    function combine(start, combo) {
+        if (combo.length === k) {
+            results.push([...combo]);
+            return;
+        }
+        for (let i = start; i < array.length; i++) {
+            combo.push(array[i]);
+            combine(i + 1, combo);
+            combo.pop();
+        }
+    }
+    combine(0, []);
+    return results;
+}
 
 module.exports = mongoose.model('Group', groupSchema);
