@@ -21,4 +21,6 @@ router.get('/:id/edit', isLoggedIn, isGroupOwner, catchAsync(group.renderEditFor
 
 router.post('/:id/optimize', isLoggedIn, catchAsync(group.optimize));
 
+router.delete('/:id/transactions/delete-all', isLoggedIn, isGroupOwnerOrParticipant, catchAsync(group.deleteAllTransactions))
+
 module.exports = router;
