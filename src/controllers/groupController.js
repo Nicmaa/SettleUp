@@ -116,3 +116,22 @@ module.exports.optimize = async (req, res) => {
 
     res.json(optimized);
 }
+
+module.exports.deleteAllTransactions = async(req, res) => {
+    const { id } = req.params;
+
+    const group = await Group.findById(id).populate('transactions');
+    if (!group) throw new ExpressError("Gruppo non trovato!", 404);
+
+    const transactionIds = group.transactions.map(t => t._id);
+
+    await Transaction.deleteMany({ _id: { $in: transactionIds } });
+
+    group.transactions = [];
+    await group.save();
+
+    await Group.refreshBalance(id);
+
+    req.flash('success', 'Tutte le transazioni del gruppo sono state eliminate con successo!');
+    res.redirect(`/groups/${id}`);
+}

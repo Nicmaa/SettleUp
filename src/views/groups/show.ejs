@@ -17,11 +17,23 @@
                         <form 
                             action="/groups/<%= group._id %>?_method=DELETE" 
                             method="POST" 
-                            id="delete-group-form"
                             class="d-inline"
+                            onsubmit="return confirm('Sei sicuro di voler eliminare DEFINITIVAMENTE il gruppo?')"
                         >
                             <button type="submit" class="dropdown-item text-danger">
                                 <i class="bi bi-trash me-2"></i>Elimina Gruppo
+                            </button>
+                        </form>
+                    </li>
+                    <li>
+                        <form 
+                            action="/groups/<%= group._id %>/transactions/delete-all?_method=DELETE" 
+                            method="POST" 
+                            class="d-inline"
+                            onsubmit="return confirm('Sei sicuro di voler eliminare TUTTE le transazioni del gruppo? Questa azione è irreversibile.')"
+                        >
+                            <button type="submit" class="dropdown-item text-danger">
+                                <i class="bi bi-trash3 me-2"></i>Elimina TUTTE le transazioni
                             </button>
                         </form>
                     </li>
